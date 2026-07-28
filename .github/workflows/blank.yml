@@ -17,10 +17,10 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Hanangana ny Gradle wrapper mandeha ho azy
+      - name: Hanangana ny Gradle wrapper mifanaraka amin'ny tetikasa
         run: |
           npm install -g corepack
-          gradle wrapper --gradle-version 8.4
+          gradle wrapper --gradle-version 9.3.1
           chmod +x gradlew
 
       - name: Manamboatra APK
