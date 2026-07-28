@@ -1,8 +1,6 @@
 name: Hanamboatra APK Tantsaha
 
 on:
-  push:
-    branches: [ "principal" ]
   workflow_dispatch:
 
 jobs:
@@ -20,11 +18,11 @@ jobs:
         java-version: '17'
 
     - name: Hanome alalana ny Gradle
-      run: chmod +x gradlew
+      run: chmod +x Gradle/wrapper/gradle-wrapper.properties || chmod +x gradlew
       continue-on-error: true
 
     - name: Hanangana ny APK (Assemble Debug)
-      run: ./gradlew assembleDebug
+      run: ./gradlew assembleDebug || ./Gradle/wrapper/gradlew assembleDebug
       continue-on-error: true
 
     - name: Hampiditra ny APK ho azo alaina
