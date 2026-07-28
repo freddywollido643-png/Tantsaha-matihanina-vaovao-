@@ -12,6 +12,7 @@ sealed class Screen(
     val unselectedIcon: ImageVector
 ) {
     object Home : Screen("home", "Accueil", Icons.Filled.Home, Icons.Outlined.Home)
+    object Marketplace : Screen("marketplace", "Tsena", Icons.Filled.Storefront, Icons.Outlined.Storefront)
     object Livestock : Screen("livestock", "Fiompiana", Icons.Filled.Pets, Icons.Outlined.Pets)
     object Crops : Screen("crops", "Fambolena", Icons.Filled.Grass, Icons.Outlined.Grass)
     object Calculator : Screen("calculator", "Kajy", Icons.Filled.Calculate, Icons.Outlined.Calculate)
@@ -23,6 +24,7 @@ sealed class Screen(
     companion object {
         val bottomNavScreens = listOf(
             Home,
+            Marketplace,
             Livestock,
             Crops,
             Calculator,

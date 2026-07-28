@@ -180,3 +180,86 @@ class WeatherViewModel(private val repository: TantsahaRepository) : ViewModel()
         _selectedCity.value = city
     }
 }
+
+class MarketplaceViewModel(private val repository: TantsahaRepository) : ViewModel() {
+    private val _items = MutableStateFlow(repository.getMarketplaceItems())
+    val items: StateFlow<List<MarketplaceItem>> = _items.asStateFlow()
+
+    private val _selectedCategory = MutableStateFlow("Rehetra")
+    val selectedCategory: StateFlow<String> = _selectedCategory.asStateFlow()
+
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    private val _adMobConfig = MutableStateFlow(AdMobConfig())
+    val adMobConfig: StateFlow<AdMobConfig> = _adMobConfig.asStateFlow()
+
+    private val _showInterstitial = MutableStateFlow(false)
+    val showInterstitial: StateFlow<Boolean> = _showInterstitial.asStateFlow()
+
+    private val _totalSalesAr = MutableStateFlow(4850000L)
+    val totalSalesAr: StateFlow<Long> = _totalSalesAr.asStateFlow()
+
+    private val _totalCommissionEarnedAr = MutableStateFlow(242500L) // 5% of total sales
+    val totalCommissionEarnedAr: StateFlow<Long> = _totalCommissionEarnedAr.asStateFlow()
+
+    private val _completedOrdersCount = MutableStateFlow(18)
+    val completedOrdersCount: StateFlow<Int> = _completedOrdersCount.asStateFlow()
+
+    fun setCategory(category: String) {
+        _selectedCategory.value = category
+    }
+
+    fun setSearchQuery(query: String) {
+        _searchQuery.value = query
+    }
+
+    fun updateAdMobConfig(newConfig: AdMobConfig) {
+        _adMobConfig.value = newConfig
+    }
+
+    fun triggerInterstitialAd() {
+        if (_adMobConfig.value.isAdMobEnabled) {
+            _showInterstitial.value = true
+        }
+    }
+
+    fun dismissInterstitialAd() {
+        _showInterstitial.value = false
+    }
+
+    fun postNewItem(
+        title: String,
+        category: String,
+        priceAr: Long,
+        sellerName: String,
+        sellerPhone: String,
+        location: String,
+        quantity: String,
+        description: String
+    ) {
+        val newItem = MarketplaceItem(
+            id = "m_${System.currentTimeMillis()}",
+            title = title,
+            category = category,
+            priceAr = priceAr,
+            commissionPercent = 5.0,
+            sellerName = sellerName,
+            sellerPhone = sellerPhone,
+            location = location,
+            quantityAvailable = quantity,
+            description = description,
+            isVerifiedSeller = true
+        )
+        _items.value = listOf(newItem) + _items.value
+        triggerInterstitialAd()
+    }
+
+    fun placeOrder(item: MarketplaceItem) {
+        _totalSalesAr.value += item.priceAr
+        _totalCommissionEarnedAr.value += item.commissionAmountAr
+        _completedOrdersCount.value += 1
+        triggerInterstitialAd()
+    }
+}
+

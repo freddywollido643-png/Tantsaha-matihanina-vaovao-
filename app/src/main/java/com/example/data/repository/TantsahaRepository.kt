@@ -628,4 +628,92 @@ Aina sy rano: tondrahy fitaovana hatrany, avadika isaky ny 15 andro. Afaka 60-90
             notes = "Tena ilaina amin'ny omby fiompiana sy omby tosika eto Madagasikara."
         )
     )
+
+    fun getMarketplaceItems(): List<MarketplaceItem> = listOf(
+        MarketplaceItem(
+            id = "m_1",
+            title = "Akoho Gasy Mpanatodizana Nohatsaraina",
+            category = "Akoho & Vorona",
+            priceAr = 28000,
+            commissionPercent = 5.0,
+            sellerName = "Rakoto Jean (Fermeur Analamanga)",
+            sellerPhone = "034 12 345 67",
+            location = "Antananarivo (Ivato)",
+            quantityAvailable = "50 akoho",
+            description = "Akoho gasy nohatsaraina 6 volana, efa manatody tsara, vaksina feno HB1 sy LaSota. Salama tsara."
+        ),
+        MarketplaceItem(
+            id = "m_2",
+            title = "Kisoa Vavy Large White Mitondra Vohoka",
+            category = "Kisoa & Omby",
+            priceAr = 650000,
+            commissionPercent = 5.0,
+            sellerName = "Pauline Rasoa",
+            sellerPhone = "032 88 990 00",
+            location = "Antsirabe (Betafo)",
+            quantityAvailable = "2 kisoa vavy",
+            description = "Kisoa Large White vavy faha-2 miteraka, mitondra vohoka 2 volana. Nono 14, efa vaksina Rouget."
+        ),
+        MarketplaceItem(
+            id = "m_3",
+            title = "Vary Makalioka SRI Gony 50kg",
+            category = "Vary & Legioma",
+            priceAr = 160000,
+            commissionPercent = 5.0,
+            sellerName = "Coopérative Alaotra",
+            sellerPhone = "033 11 223 34",
+            location = "Ambatondrazaka",
+            quantityAvailable = "100 gony",
+            description = "Vary Makalioka tsara kalitao jinjana vao haingana amin'ny teknika SRI. Tsy misy vato na mololo."
+        ),
+        MarketplaceItem(
+            id = "m_4",
+            title = "Zezika Organika Compost Masaka Gony 25kg",
+            category = "Zezika & Fitaovana",
+            priceAr = 22000,
+            commissionPercent = 5.0,
+            sellerName = "EcoCompost Mada",
+            sellerPhone = "034 55 667 78",
+            location = "Antananarivo (Ampasampito)",
+            quantityAvailable = "200 gony",
+            description = "Compost masaka tsara (100% organika), manankarena azote sy humus ho an'ny legioma sy fambolena vary."
+        ),
+        MarketplaceItem(
+            id = "m_5",
+            title = "Vaksiny HB1 Barika Akoho (100 doses)",
+            category = "Fanafody",
+            priceAr = 15000,
+            commissionPercent = 5.0,
+            sellerName = "Pharmacie Vétérinaire Tsara",
+            sellerPhone = "034 99 887 76",
+            location = "Mahajanga",
+            quantityAvailable = "30 flacons",
+            description = "Vaksiny HB1 vaovao voatahiry amin'ny chaînes de froid (2°C-8°C) ho an'ny akohokely 7 andro."
+        ),
+        MarketplaceItem(
+            id = "m_6",
+            title = "Kisokely Landrace Pur 2 Volana",
+            category = "Kisoa & Omby",
+            priceAr = 120000,
+            commissionPercent = 5.0,
+            sellerName = "Fiompiana Randria",
+            sellerPhone = "032 44 556 67",
+            location = "Fianarantsoa",
+            quantityAvailable = "12 kisokely",
+            description = "Kisokely 60 andro masaka sèvrement, efa nahazo vy Fer sy déparasitage. Matanjaka tsara."
+        ),
+        MarketplaceItem(
+            id = "m_7",
+            title = "Omby Tosika Paire (Omby Dra) 4 Taona",
+            category = "Kisoa & Omby",
+            priceAr = 3200000,
+            commissionPercent = 5.0,
+            sellerName = "Dadafara Toliara",
+            sellerPhone = "034 77 665 54",
+            location = "Toliara",
+            quantityAvailable = "1 paire",
+            description = "Omby tosika roa matanjaka zatra miasa tanimbary sy charrette. Salama tsara, vaksina charbon."
+        )
+    )
 }
+

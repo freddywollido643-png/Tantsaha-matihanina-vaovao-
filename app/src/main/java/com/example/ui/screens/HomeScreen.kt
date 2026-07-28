@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.R
 import com.example.ui.components.ActionQuickCard
+import com.example.ui.components.AdMobBannerCard
 import com.example.ui.components.SectionHeader
 import com.example.ui.components.TantsahaAppHeader
 import com.example.ui.navigation.Screen
@@ -59,6 +60,11 @@ fun HomeScreen(
                 .background(MaterialTheme.colorScheme.background),
             contentPadding = PaddingValues(bottom = 24.dp)
         ) {
+            // AdMob Banner Header
+            item {
+                AdMobBannerCard()
+            }
+
             // Hero Banner Card
             item {
                 Card(
@@ -66,12 +72,12 @@ fun HomeScreen(
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                        .padding(horizontal = 16.dp, vertical = 6.dp)
                 ) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(180.dp)
+                            .height(170.dp)
                     ) {
                         Image(
                             painter = painterResource(id = R.drawable.img_hero_banner_1785239691291),
@@ -127,6 +133,64 @@ fun HomeScreen(
                 }
             }
 
+            // Tsena Online E-Commerce Highlight Card
+            item {
+                Card(
+                    onClick = { onNavigate(Screen.Marketplace) },
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = GoldSecondary),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(14.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .size(44.dp)
+                                    .clip(CircleShape)
+                                    .background(DarkGreenPrimary)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Storefront,
+                                    contentDescription = "Tsena Online",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    text = "🛒 TSENA ONLINE (E-COMMERCE)",
+                                    fontWeight = FontWeight.ExtraBold,
+                                    fontSize = 14.sp,
+                                    color = Color(0xFF281800)
+                                )
+                                Text(
+                                    text = "Amidio & Vidio ny akoho, kisoa, vary sy zezika! (Commission 5%)",
+                                    fontSize = 11.sp,
+                                    color = Color(0xFF3E2723)
+                                )
+                            }
+                        }
+
+                        Icon(
+                            imageVector = Icons.Default.ChevronRight,
+                            contentDescription = null,
+                            tint = Color(0xFF281800)
+                        )
+                    }
+                }
+            }
+
             // Quick Access Navigation Grid
             item {
                 Column(modifier = Modifier.padding(horizontal = 16.dp)) {
@@ -137,6 +201,14 @@ fun HomeScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         QuickSquareButton(
+                            title = "Tsena Online",
+                            subtitle = "E-Commerce & Commission",
+                            icon = Icons.Filled.Storefront,
+                            color = Color(0xFFE65100),
+                            modifier = Modifier.weight(1f),
+                            onClick = { onNavigate(Screen.Marketplace) }
+                        )
+                        QuickSquareButton(
                             title = "Fiompiana",
                             subtitle = "Akoho, Kisoa, Bitro...",
                             icon = Icons.Filled.Pets,
@@ -144,6 +216,14 @@ fun HomeScreen(
                             modifier = Modifier.weight(1f),
                             onClick = { onNavigate(Screen.Livestock) }
                         )
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         QuickSquareButton(
                             title = "Fambolena",
                             subtitle = "Vary, Legioma, Zezika...",
@@ -152,14 +232,6 @@ fun HomeScreen(
                             modifier = Modifier.weight(1f),
                             onClick = { onNavigate(Screen.Crops) }
                         )
-                    }
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
                         QuickSquareButton(
                             title = "Kajy Tantsaha",
                             subtitle = "Sakafo, Tombony...",
@@ -168,6 +240,14 @@ fun HomeScreen(
                             modifier = Modifier.weight(1f),
                             onClick = { onNavigate(Screen.Calculator) }
                         )
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         QuickSquareButton(
                             title = "AI Assistant",
                             subtitle = "Chat amin'ny AI",
@@ -175,6 +255,14 @@ fun HomeScreen(
                             color = Color(0xFF6A1B9A),
                             modifier = Modifier.weight(1f),
                             onClick = { onNavigate(Screen.AiAssistant) }
+                        )
+                        QuickSquareButton(
+                            title = "Vaksiny",
+                            subtitle = "Kalandrie & Reminders",
+                            icon = Icons.Filled.MedicalServices,
+                            color = Color(0xFFC62828),
+                            modifier = Modifier.weight(1f),
+                            onClick = { onNavigate(Screen.Vaccines) }
                         )
                     }
 
@@ -185,20 +273,20 @@ fun HomeScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         QuickSquareButton(
-                            title = "Vaksiny",
-                            subtitle = "Kalandrie & Reminders",
-                            icon = Icons.Filled.MedicalServices,
-                            color = Color(0xFFC62828),
-                            modifier = Modifier.weight(1f),
-                            onClick = { onNavigate(Screen.Vaccines) }
-                        )
-                        QuickSquareButton(
                             title = "Boky Premium",
                             subtitle = "Ebooks & PDF Offline",
                             icon = Icons.Filled.Book,
-                            color = Color(0xFFE65100),
+                            color = Color(0xFFD84315),
                             modifier = Modifier.weight(1f),
                             onClick = { onNavigate(Screen.Ebooks) }
+                        )
+                        QuickSquareButton(
+                            title = "Meteo",
+                            subtitle = "Toetrandro & Faritra",
+                            icon = Icons.Filled.WbSunny,
+                            color = Color(0xFFF57F17),
+                            modifier = Modifier.weight(1f),
+                            onClick = { onNavigate(Screen.Weather) }
                         )
                     }
                 }

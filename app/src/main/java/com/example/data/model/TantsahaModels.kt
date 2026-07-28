@@ -83,3 +83,38 @@ enum class MessageSender {
     USER,
     AI
 }
+
+data class MarketplaceItem(
+    val id: String,
+    val title: String,
+    val category: String,
+    val priceAr: Long,
+    val commissionPercent: Double = 5.0,
+    val sellerName: String,
+    val sellerPhone: String,
+    val location: String,
+    val quantityAvailable: String,
+    val description: String,
+    val datePosted: String = "28 Jolay 2026",
+    val isVerifiedSeller: Boolean = true
+) {
+    val commissionAmountAr: Long get() = (priceAr * (commissionPercent / 100.0)).toLong()
+    val sellerPayoutAr: Long get() = priceAr - commissionAmountAr
+}
+
+data class CommissionSummary(
+    val totalSalesAr: Long,
+    val commissionRatePercent: Double,
+    val totalCommissionEarnedAr: Long,
+    val pendingPayoutsAr: Long,
+    val completedTransactionsCount: Int
+)
+
+data class AdMobConfig(
+    val publisherId: String = "pub-3904073341234567",
+    val bannerAdUnitId: String = "ca-app-pub-3904073341234567/6300978111",
+    val interstitialAdUnitId: String = "ca-app-pub-3904073341234567/1033173712",
+    val isTestMode: Boolean = true,
+    val isAdMobEnabled: Boolean = true
+)
+
