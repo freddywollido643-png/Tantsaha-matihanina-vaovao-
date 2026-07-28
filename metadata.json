@@ -1,0 +1,6 @@
+{
+  "name": "Tantsaha Matihanina",
+  "description": "Application fanabeazana sy fanampiana ho an'ny tantsaha Malagasy momba ny fiompiana sy fambolena.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
