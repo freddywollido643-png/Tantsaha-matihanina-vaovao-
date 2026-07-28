@@ -1,0 +1,34 @@
+name: Hanamboatra APK Tantsaha
+
+on:
+  push:
+    branches: [ "principal" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Maka ny kaody avy ao amin'ny repo
+      uses: actions/checkout@v4
+
+    - name: Handamina ny tontolo Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Hanome alalana ny Gradle
+      run: chmod +x gradlew
+      continue-on-error: true
+
+    - name: Hanangana ny APK (Assemble Debug)
+      run: ./gradlew assembleDebug
+      continue-on-error: true
+
+    - name: Hampiditra ny APK ho azo alaina
+      uses: actions/upload-artifact@v4
+      with:
+        name: Tantsaha-Matihanina-APK
+        path: "**/build/outputs/apk/debug/*.apk"
