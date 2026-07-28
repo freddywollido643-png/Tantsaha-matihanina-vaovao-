@@ -17,18 +17,16 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Hanamboatra sy hanome alalana ny Gradle wrapper
+      - name: Hanangana ny Gradle wrapper mandeha ho azy
         run: |
-          chmod +x Gradle/wrapper/gradle-wrapper.properties
-          if [ ! -f gradlew ]; then
-            gradle wrapper --gradle-version 8.4
-          fi
+          npm install -g corepack
+          gradle wrapper --gradle-version 8.4
           chmod +x gradlew
 
       - name: Manamboatra APK
         run: ./gradlew assembleDebug
 
-      - name: Mampakatra APK
+      - name: Mampakatra APK ho azo alaina
         uses: actions/upload-artifact@v4
         with:
           name: Tantsaha-Matihanina-APK
