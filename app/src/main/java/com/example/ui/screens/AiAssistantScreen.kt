@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.R
+import com.example.data.api.GeminiClient
 import com.example.data.model.ChatMessage
 import com.example.data.model.MessageSender
 import com.example.ui.components.TantsahaAppHeader
@@ -30,7 +31,6 @@ import com.example.ui.theme.DarkGreenPrimary
 import com.example.ui.theme.GoldSecondary
 import com.example.ui.theme.GoldSecondaryBright
 import com.example.viewmodel.AiAssistantViewModel
-import kotlinx.coroutines.launch
 
 @Composable
 fun AiAssistantScreen(
@@ -38,17 +38,21 @@ fun AiAssistantScreen(
 ) {
     val messages by viewModel.messages.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val apiKeyInput by viewModel.apiKeyInput.collectAsState()
 
     var inputText by remember { mutableStateOf("") }
+    var showApiKeyModal by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
-    val coroutineScope = rememberCoroutineScope()
 
     val promptChips = listOf(
-        "Ahoana no fomba fikarakarana akoho gasy 100?",
-        "Ahoana no fanaovana compost organika?",
-        "Inona no vaksiny kisoa kely amin me 2 volana?",
-        "Ahoana no fambolena vary SRI?",
-        "Ahoana no hisorohana ny puces amin me bitro?"
+        "🐓 Akoho gasy & pondeuse",
+        "🐖 Kisoa & PPA",
+        "🌾 Vary SRI / SRA",
+        "🍅 Voatabia & Legioma",
+        "💩 Compost organika",
+        "💉 Vaksiny akoho sy kisoa",
+        "🐰 Bitro & Trondro",
+        "💰 Vidin-tsena malagasy"
     )
 
     LaunchedEffect(messages.size) {
@@ -60,9 +64,10 @@ fun AiAssistantScreen(
     Scaffold(
         topBar = {
             TantsahaAppHeader(
-                title = "Tantsaha AI Assistant",
-                subtitle = "Mpanolotsaina Miaraka Aminao 24/7",
-                badgeText = "Gemini AI"
+                title = "Tantsaha AI & Fikarohana",
+                subtitle = "Mpanolotsaina & Fikarohana Miaraka Aminao 24/7",
+                badgeText = if (apiKeyInput.isNotBlank()) "🟢 Gemini Cloud" else "⚡ Search Engine",
+                onBadgeClick = { showApiKeyModal = true }
             )
         }
     ) { padding ->
@@ -72,16 +77,79 @@ fun AiAssistantScreen(
                 .padding(padding)
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            // Quick Prompt Suggestion Chips
+            // Status and Settings Header Card
+            Card(
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 6.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Surface(
+                            shape = CircleShape,
+                            color = DarkGreenPrimary.copy(alpha = 0.15f),
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = null,
+                                    tint = DarkGreenPrimary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column {
+                            Text(
+                                text = "Mikaroka amin'ny Banky Angona & AI",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "Mampidira teny gony na fanontaniana momba ny vokatrafy.",
+                                fontSize = 10.sp,
+                                color = Color.Gray
+                            )
+                        }
+                    }
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        IconButton(
+                            onClick = { viewModel.clearChatHistory() },
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(imageVector = Icons.Default.DeleteSweep, contentDescription = "Fafao Chat", tint = Color.Gray, modifier = Modifier.size(18.dp))
+                        }
+
+                        IconButton(
+                            onClick = { showApiKeyModal = true },
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(imageVector = Icons.Default.Settings, contentDescription = "Paramètres API", tint = DarkGreenPrimary, modifier = Modifier.size(18.dp))
+                        }
+                    }
+                }
+            }
+
+            // Quick Category Filter Chips
             LazyRow(
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 items(promptChips) { chipText ->
                     SuggestionChip(
                         onClick = {
-                            viewModel.sendMessage(chipText)
+                            val cleanQuery = chipText.replace(Regex("[^a-zA-Z ]"), "").trim()
+                            viewModel.sendMessage("Torohevitra momba ny $cleanQuery eto Madagasikara")
                         },
                         label = { Text(chipText, fontSize = 11.sp, maxLines = 1) },
                         colors = SuggestionChipDefaults.suggestionChipColors(
@@ -107,21 +175,28 @@ fun AiAssistantScreen(
 
                 if (isLoading) {
                     item {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
+                        Card(
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                             modifier = Modifier.padding(8.dp)
                         ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                color = DarkGreenPrimary,
-                                strokeWidth = 2.dp
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Text(
-                                text = "Mieritreritra sy mamaly amin'ny teny Malagasy i Tantsaha AI...",
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(12.dp)
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(20.dp),
+                                    color = DarkGreenPrimary,
+                                    strokeWidth = 2.dp
+                                )
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Text(
+                                    text = "🔎 Mikaroka ao amin'ny banky angona sy mandika valiny feno...",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 }
@@ -142,10 +217,17 @@ fun AiAssistantScreen(
                     OutlinedTextField(
                         value = inputText,
                         onValueChange = { inputText = it },
-                        placeholder = { Text("Mpanolotsaina: Parasinao fanontaniana...", fontSize = 13.sp) },
+                        placeholder = { Text("Mikaroka: Akoho, Kisoa, Vary, Voatabia...", fontSize = 13.sp) },
                         shape = RoundedCornerShape(24.dp),
                         modifier = Modifier.weight(1f),
-                        maxLines = 3
+                        maxLines = 3,
+                        trailingIcon = {
+                            if (inputText.isNotEmpty()) {
+                                IconButton(onClick = { inputText = "" }) {
+                                    Icon(imageVector = Icons.Default.Close, contentDescription = "Clear", modifier = Modifier.size(16.dp))
+                                }
+                            }
+                        }
                     )
 
                     Spacer(modifier = Modifier.width(8.dp))
@@ -171,6 +253,58 @@ fun AiAssistantScreen(
                 }
             }
         }
+    }
+
+    // Modal: Settings & Gemini API Key Modal
+    if (showApiKeyModal) {
+        var keyState by remember { mutableStateOf(apiKeyInput) }
+
+        AlertDialog(
+            onDismissRequest = { showApiKeyModal = false },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(imageVector = Icons.Default.VpnKey, contentDescription = null, tint = DarkGreenPrimary)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Configuration Tantsaha AI", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                }
+            },
+            text = {
+                Column {
+                    Text(
+                        text = "Ny Tantsaha AI dia ampiasaina amin'ny fomba 2:\n" +
+                                "1. ⚡ **Smart Agriculture Search Engine**: Efa vonona sy mandeha avy hatrany amin'ny banky angona feno (Akoho, Kisoa, Vary, Legioma, Vaksiny).\n" +
+                                "2. 🌐 **Google Gemini API Key**: Azonao ampidirina eto ny Gemini API Key-nao avy amin me AI Studio mba hahazoana valiny miaro amin me Cloud.",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = keyState,
+                        onValueChange = { keyState = it },
+                        label = { Text("Gemini API Key (Optionnel)") },
+                        placeholder = { Text("AIzaSy...") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.updateApiKey(keyState)
+                        showApiKeyModal = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = DarkGreenPrimary)
+                ) {
+                    Text("Tahirizo Key")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showApiKeyModal = false }) {
+                    Text("Akatona")
+                }
+            }
+        )
     }
 }
 
@@ -213,23 +347,41 @@ fun ChatBubbleItem(message: ChatMessage) {
                 bottomEnd = if (isUser) 4.dp else 16.dp
             ),
             shadowElevation = 2.dp,
-            modifier = Modifier.widthIn(max = 280.dp)
+            modifier = Modifier.widthIn(max = 300.dp)
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
                 if (!isUser) {
-                    Text(
-                        text = "Tantsaha AI",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = DarkGreenPrimary
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = "Tantsaha AI",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = DarkGreenPrimary
+                        )
+                        Surface(
+                            color = DarkGreenPrimary.copy(alpha = 0.1f),
+                            shape = RoundedCornerShape(4.dp)
+                        ) {
+                            Text(
+                                text = "Mpanolotsaina",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = DarkGreenPrimary,
+                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
                 }
 
                 Text(
                     text = message.text,
-                    fontSize = 14.sp,
-                    lineHeight = 19.sp
+                    fontSize = 13.sp,
+                    lineHeight = 18.sp
                 )
             }
         }

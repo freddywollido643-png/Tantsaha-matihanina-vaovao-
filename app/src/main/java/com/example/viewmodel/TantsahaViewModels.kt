@@ -3,6 +3,8 @@ package com.example.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.api.GeminiClient
+import com.example.data.api.GeminiContent
+import com.example.data.api.GeminiPart
 import com.example.data.local.BookmarkEntity
 import com.example.data.local.FarmerNoteEntity
 import com.example.data.local.VaccineScheduleEntity
@@ -145,7 +147,7 @@ class AiAssistantViewModel : ViewModel() {
         listOf(
             ChatMessage(
                 sender = MessageSender.AI,
-                text = "Manao ahoana Tantsaha! Izaho no Tantsaha AI, mpanolotsaina anao momba ny fiompiana sy fambolena eto Madagasikara. Inona no zava-misy na fanontaniana azoko ampiana anao androany?"
+                text = "Manao ahoana Tantsaha! Izaho no Tantsaha AI 🟢. Mikaroka sy manome torohevitra momba ny fiompiana, fambolena, vaksiny, sakafo sy vidin-tsena eto Madagasikara. Inona no fanontaniana azoko ampiana anao androany?"
             )
         )
     )
@@ -154,19 +156,48 @@ class AiAssistantViewModel : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val _apiKeyInput = MutableStateFlow(GeminiClient.userCustomApiKey)
+    val apiKeyInput: StateFlow<String> = _apiKeyInput.asStateFlow()
+
+    fun updateApiKey(newKey: String) {
+        _apiKeyInput.value = newKey
+        GeminiClient.userCustomApiKey = newKey
+    }
+
     fun sendMessage(userText: String) {
         if (userText.isBlank() || _isLoading.value) return
 
         val userMsg = ChatMessage(sender = MessageSender.USER, text = userText)
-        _messages.value = _messages.value + userMsg
+        val currentMsgs = _messages.value
+        _messages.value = currentMsgs + userMsg
         _isLoading.value = true
 
         viewModelScope.launch {
-            val reply = GeminiClient.askTantsahaAi(userText)
+            // Build conversation history for Gemini API
+            val history = currentMsgs
+                .filter { it.text.isNotBlank() }
+                .takeLast(6)
+                .map {
+                    GeminiContent(
+                        role = if (it.sender == MessageSender.USER) "user" else "model",
+                        parts = listOf(GeminiPart(text = it.text))
+                    )
+                }
+
+            val reply = GeminiClient.askTantsahaAi(userText, history)
             val aiMsg = ChatMessage(sender = MessageSender.AI, text = reply)
             _messages.value = _messages.value + aiMsg
             _isLoading.value = false
         }
+    }
+
+    fun clearChatHistory() {
+        _messages.value = listOf(
+            ChatMessage(
+                sender = MessageSender.AI,
+                text = "Karakarao tsara ny fiompiana sy fambolena! Nadio ny tantaram-pikarohana. Ampidiro indray ny fanontanianao."
+            )
+        )
     }
 }
 
