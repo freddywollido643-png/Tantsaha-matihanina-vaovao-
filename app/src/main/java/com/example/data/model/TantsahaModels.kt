@@ -130,8 +130,15 @@ data class UserProfile(
     val role: UserRole = UserRole.TANTSAHA,
     val phone: String = "034 12 345 67",
     val location: String = "Antananarivo (Ivato)",
-    val bio: String = "Mpiompy akoho gasy nohatsaraina sy kisoa miteraka.",
-    val isVerified: Boolean = true
+    val bio: String = "Mpiompy akoho gasy nohatsaraina sy kisoa miteraka. Mpamatsy akoho sy atody madio.",
+    val isVerified: Boolean = true,
+    val avatarInitials: String = "RJ",
+    val avatarColorHex: Long = 0xFF2E7D32,
+    val coverColorHex: Long = 0xFF1B5E20,
+    val facebookPage: String = "facebook.com/tantsaha.rakotojean",
+    val whatsappNumber: String = "+261 34 12 345 67",
+    val followersCount: Int = 342,
+    val rating: Float = 4.9f
 )
 
 data class VideoPost(
@@ -142,6 +149,8 @@ data class VideoPost(
     val location: String,
     val title: String,
     val description: String,
+    val mediaType: String = "VIDEO", // "VIDEO", "PHOTO", "TEXT"
+    val photoTag: String = "📷 SARY VOKATRA",
     val videoDurationText: String = "0:45",
     val priceAr: Long,
     val likesCount: Int,

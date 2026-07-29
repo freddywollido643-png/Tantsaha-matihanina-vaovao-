@@ -280,25 +280,55 @@ class CommunityViewModel(private val repository: TantsahaRepository) : ViewModel
         _currentUser.value = _currentUser.value.copy(role = role)
     }
 
-    fun updateUserProfile(name: String, phone: String, location: String, bio: String) {
+    fun updateUserProfile(
+        name: String,
+        phone: String,
+        location: String,
+        bio: String,
+        facebookPage: String = "",
+        whatsappNumber: String = "",
+        avatarColorHex: Long = 0xFF2E7D32,
+        coverColorHex: Long = 0xFF1B5E20
+    ) {
+        val initials = name.split(" ")
+            .mapNotNull { it.firstOrNull()?.uppercaseChar() }
+            .take(2)
+            .joinToString("")
+            .ifEmpty { "RJ" }
+
         _currentUser.value = _currentUser.value.copy(
             name = name,
             phone = phone,
             location = location,
-            bio = bio
+            bio = bio,
+            facebookPage = facebookPage.ifBlank { _currentUser.value.facebookPage },
+            whatsappNumber = whatsappNumber.ifBlank { _currentUser.value.whatsappNumber },
+            avatarInitials = initials,
+            avatarColorHex = avatarColorHex,
+            coverColorHex = coverColorHex
         )
     }
 
-    fun publishVideoPost(title: String, description: String, priceAr: Long, category: String) {
-        val newVideo = VideoPost(
-            id = "v_${System.currentTimeMillis()}",
+    fun publishMediaPost(
+        title: String,
+        description: String,
+        priceAr: Long,
+        category: String,
+        mediaType: String, // "PHOTO" or "VIDEO"
+        photoTag: String = "📷 SARY VOKATRA"
+    ) {
+        val prefix = if (mediaType == "PHOTO") "📸" else "🎥"
+        val newPost = VideoPost(
+            id = "post_${System.currentTimeMillis()}",
             authorName = "${_currentUser.value.name} (${_currentUser.value.role.displayName.take(12)})",
             authorRole = _currentUser.value.role,
             authorPhone = _currentUser.value.phone,
             location = _currentUser.value.location,
-            title = "🎥 $title",
+            title = "$prefix $title",
             description = description,
-            videoDurationText = "1:15",
+            mediaType = mediaType,
+            photoTag = photoTag,
+            videoDurationText = if (mediaType == "VIDEO") "1:15" else "0:00",
             priceAr = priceAr,
             likesCount = 1,
             commentsCount = 0,
@@ -306,7 +336,7 @@ class CommunityViewModel(private val repository: TantsahaRepository) : ViewModel
             datePosted = "Vao haingana",
             category = category
         )
-        _videoPosts.value = listOf(newVideo) + _videoPosts.value
+        _videoPosts.value = listOf(newPost) + _videoPosts.value
     }
 
     fun likeVideoPost(postId: String) {

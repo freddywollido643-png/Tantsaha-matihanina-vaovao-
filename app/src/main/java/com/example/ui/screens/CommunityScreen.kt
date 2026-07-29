@@ -20,6 +20,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -28,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.CommunityGroup
 import com.example.data.model.CommunityMessage
+import com.example.data.model.UserProfile
 import com.example.data.model.UserRole
 import com.example.data.model.VideoPost
 import com.example.ui.components.AdMobBannerCard
@@ -46,18 +48,19 @@ fun CommunityScreen(
     val groups by viewModel.groups.collectAsState()
     val chatMessages by viewModel.chatMessages.collectAsState()
 
-    var selectedTab by remember { mutableIntStateOf(0) } // 0: Videos/Feed, 1: Groups, 2: Chat
+    var selectedTab by remember { mutableIntStateOf(0) } // 0: Feed (Sary/Video), 1: Profile, 2: Groups, 3: Chat
     var showRoleSelector by remember { mutableStateOf(false) }
-    var showNewVideoDialog by remember { mutableStateOf(false) }
+    var showNewPostDialog by remember { mutableStateOf(false) }
+    var showEditProfileDialog by remember { mutableStateOf(false) }
     var chatInputText by remember { mutableStateOf("") }
     var toastMessage by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
         topBar = {
             TantsahaAppHeader(
-                title = "Réseau Tantsaha & Video",
+                title = "Réseau Tantsaha & FB Profile",
                 subtitle = "Tsy miankina amin'ny Facebook (Tantsaha, Grossiste, Retailer)",
-                badgeText = "Role: ${currentUser.role.displayName.take(16)}...",
+                badgeText = "Compte: ${currentUser.role.displayName.take(14)}...",
                 onBadgeClick = { showRoleSelector = true }
             )
         }
@@ -68,7 +71,7 @@ fun CommunityScreen(
                 .padding(padding)
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            // Role Indicator Banner Card
+            // Role & Quick Switcher Banner Card
             Card(
                 shape = RoundedCornerShape(14.dp),
                 colors = CardDefaults.cardColors(containerColor = DarkGreenPrimary),
@@ -85,29 +88,36 @@ fun CommunityScreen(
                         Box(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier
-                                .size(36.dp)
+                                .size(40.dp)
                                 .clip(CircleShape)
-                                .background(Color(currentUser.role.badgeColor))
+                                .background(Color(currentUser.avatarColorHex))
                         ) {
-                            Icon(
-                                imageVector = when (currentUser.role) {
-                                    UserRole.TANTSAHA -> Icons.Default.Agriculture
-                                    UserRole.GROSSISTE -> Icons.Default.LocalShipping
-                                    UserRole.MPIVAROTRA_MADINIKA -> Icons.Default.Storefront
-                                },
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(20.dp)
+                            Text(
+                                text = currentUser.avatarInitials,
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp
                             )
                         }
                         Spacer(modifier = Modifier.width(10.dp))
                         Column {
-                            Text(
-                                text = currentUser.name,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White,
-                                fontSize = 13.sp
-                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = currentUser.name,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White,
+                                    fontSize = 14.sp
+                                )
+                                if (currentUser.isVerified) {
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Icon(
+                                        imageVector = Icons.Default.CheckCircle,
+                                        contentDescription = "Verified",
+                                        tint = GoldSecondary,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            }
                             Text(
                                 text = currentUser.role.displayName,
                                 color = GoldSecondary,
@@ -117,54 +127,77 @@ fun CommunityScreen(
                         }
                     }
 
-                    Button(
-                        onClick = { showRoleSelector = true },
-                        colors = ButtonDefaults.buttonColors(containerColor = GoldSecondary),
-                        shape = RoundedCornerShape(8.dp),
-                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
-                    ) {
-                        Text("Soloy Compte", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF281800))
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        IconButton(
+                            onClick = { showEditProfileDialog = true },
+                            modifier = Modifier
+                                .background(Color.White.copy(alpha = 0.2f), CircleShape)
+                                .size(34.dp)
+                        ) {
+                            Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit Profile", tint = Color.White, modifier = Modifier.size(18.dp))
+                        }
+
+                        Button(
+                            onClick = { showRoleSelector = true },
+                            colors = ButtonDefaults.buttonColors(containerColor = GoldSecondary),
+                            shape = RoundedCornerShape(8.dp),
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Text("Rôle", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF281800))
+                        }
                     }
                 }
             }
 
-            // Tab Navigation: 🎬 Videos, 👥 Groups, 💬 Chat
-            TabRow(
+            // Tab Navigation: 📰 Sary & Video, 👤 Profil-ko, 👥 Vondrona, 💬 Chat
+            ScrollableTabRow(
                 selectedTabIndex = selectedTab,
                 containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = DarkGreenPrimary
+                contentColor = DarkGreenPrimary,
+                edgePadding = 8.dp
             ) {
                 Tab(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
-                    text = { Text("🎬 Video & Feed", fontSize = 12.sp, fontWeight = FontWeight.Bold) }
+                    text = { Text("📰 Feed Sary & Video", fontSize = 12.sp, fontWeight = FontWeight.Bold) }
                 )
                 Tab(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
-                    text = { Text("👥 Vondrona (Groups)", fontSize = 12.sp, fontWeight = FontWeight.Bold) }
+                    text = { Text("👤 Profil FB-ko", fontSize = 12.sp, fontWeight = FontWeight.Bold) }
                 )
                 Tab(
                     selected = selectedTab == 2,
                     onClick = { selectedTab = 2 },
+                    text = { Text("👥 Vondrona (Groups)", fontSize = 12.sp, fontWeight = FontWeight.Bold) }
+                )
+                Tab(
+                    selected = selectedTab == 3,
+                    onClick = { selectedTab = 3 },
                     text = { Text("💬 Chat Direct", fontSize = 12.sp, fontWeight = FontWeight.Bold) }
                 )
             }
 
             Box(modifier = Modifier.weight(1f)) {
                 when (selectedTab) {
-                    0 -> VideoFeedContent(
-                        videoPosts = videoPosts,
+                    0 -> FeedMediaContent(
+                        posts = videoPosts,
                         onLike = { viewModel.likeVideoPost(it) },
-                        onNewVideo = { showNewVideoDialog = true }
+                        onNewPost = { showNewPostDialog = true }
                     )
-                    1 -> GroupsContent(
+                    1 -> FacebookProfileContent(
+                        profile = currentUser,
+                        myPosts = videoPosts.filter { it.authorPhone == currentUser.phone || it.authorName.contains(currentUser.name) },
+                        onEditProfile = { showEditProfileDialog = true },
+                        onNewPost = { showNewPostDialog = true }
+                    )
+                    2 -> GroupsContent(
                         groups = groups,
                         onJoinGroup = { groupName ->
                             toastMessage = "Tafiditra tao amin'ny vondrona $groupName ianao!"
                         }
                     )
-                    2 -> DirectChatContent(
+                    3 -> DirectChatContent(
                         messages = chatMessages,
                         inputText = chatInputText,
                         onInputChange = { chatInputText = it },
@@ -202,25 +235,38 @@ fun CommunityScreen(
         )
     }
 
-    // Modal 2: Publish New Video Post Dialog
-    if (showNewVideoDialog) {
-        PublishVideoDialog(
+    // Modal 2: Publish New Photo / Video Post Dialog
+    if (showNewPostDialog) {
+        PublishMediaDialog(
             userRole = currentUser.role,
-            onDismiss = { showNewVideoDialog = false },
-            onPublish = { title, desc, price, cat ->
-                viewModel.publishVideoPost(title, desc, price, cat)
-                showNewVideoDialog = false
-                toastMessage = "Nalefa soa aman-tsara ny Video-nao!"
+            onDismiss = { showNewPostDialog = false },
+            onPublish = { title, desc, price, cat, mediaType, photoTag ->
+                viewModel.publishMediaPost(title, desc, price, cat, mediaType, photoTag)
+                showNewPostDialog = false
+                toastMessage = if (mediaType == "PHOTO") "Nalefa soa aman-tsara ny Sary-nao!" else "Nalefa soa aman-tsara ny Video-nao!"
+            }
+        )
+    }
+
+    // Modal 3: Edit Facebook-style User Profile Dialog
+    if (showEditProfileDialog) {
+        EditProfileModal(
+            profile = currentUser,
+            onDismiss = { showEditProfileDialog = false },
+            onSave = { name, phone, loc, bio, fbPage, wa, avatarColor, coverColor ->
+                viewModel.updateUserProfile(name, phone, loc, bio, fbPage, wa, avatarColor, coverColor)
+                showEditProfileDialog = false
+                toastMessage = "Voatahiry ny fampahalalana ny Profil-nao!"
             }
         )
     }
 }
 
 @Composable
-fun VideoFeedContent(
-    videoPosts: List<VideoPost>,
+fun FeedMediaContent(
+    posts: List<VideoPost>,
     onLike: (String) -> Unit,
-    onNewVideo: () -> Unit
+    onNewPost: () -> Unit
 ) {
     val context = LocalContext.current
 
@@ -247,32 +293,32 @@ fun VideoFeedContent(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "📹 Alefaso ny Video-nao (Tsy miankina amin'ny FB)!",
+                            text = "📸 Mandefa Sary na 📹 Video Vokatra!",
                             fontWeight = FontWeight.Bold,
                             fontSize = 13.sp,
                             color = Color(0xFFE65100)
                         )
                         Text(
-                            text = "Asehoy ny akoho, kisoa na ny vokatrao amin'ny mpambongadiny sy ny mpividy.",
+                            text = "Asehoy ny akoho, kisoa, vary na ny legiomanao mba hahazoana mpambongadiny.",
                             fontSize = 11.sp,
                             color = Color(0xFF3E2723)
                         )
                     }
 
                     Button(
-                        onClick = onNewVideo,
+                        onClick = onNewPost,
                         colors = ButtonDefaults.buttonColors(containerColor = DarkGreenPrimary),
                         shape = RoundedCornerShape(8.dp)
                     ) {
-                        Icon(imageVector = Icons.Default.Videocam, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Icon(imageVector = Icons.Default.AddAPhoto, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Post Video", fontSize = 11.sp)
+                        Text("Post Sary / Video", fontSize = 11.sp)
                     }
                 }
             }
         }
 
-        items(videoPosts, key = { it.id }) { post ->
+        items(posts, key = { it.id }) { post ->
             Card(
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -350,53 +396,123 @@ fun VideoFeedContent(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // Simulated Video Player Canvas Card
-                    Card(
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1B1B1B)),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(160.dp)
-                    ) {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier.fillMaxSize()
+                    // Simulated Photo vs Video Display Container
+                    if (post.mediaType == "PHOTO") {
+                        // Photo Card Display
+                        Card(
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF263238)),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(170.dp)
                         ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Surface(
-                                    color = DarkGreenPrimary,
-                                    shape = CircleShape,
-                                    modifier = Modifier.size(54.dp)
-                                ) {
-                                    Box(contentAlignment = Alignment.Center) {
-                                        Icon(
-                                            imageVector = Icons.Default.PlayArrow,
-                                            contentDescription = "Mamely Video",
-                                            tint = Color.White,
-                                            modifier = Modifier.size(36.dp)
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(
+                                        Brush.verticalGradient(
+                                            listOf(Color(0xFF37474F), Color(0xFF1A237E))
                                         )
-                                    }
-                                }
-                                Spacer(modifier = Modifier.height(6.dp))
-                                Text(
-                                    text = "🎥 VIDEO PRESENTATION (${post.videoDurationText})",
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
-                                )
-                                Text(
-                                    text = "Vidy: ${formatAriary(post.priceAr)}",
-                                    fontSize = 12.sp,
+                                    )
+                                    .padding(14.dp)
+                            ) {
+                                Surface(
                                     color = GoldSecondary,
-                                    fontWeight = FontWeight.ExtraBold
-                                )
+                                    shape = RoundedCornerShape(8.dp),
+                                    modifier = Modifier.align(Alignment.TopStart)
+                                ) {
+                                    Text(
+                                        text = post.photoTag,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF281800),
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                    )
+                                }
+
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier.align(Alignment.Center)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Image,
+                                        contentDescription = "Sary Vokatra",
+                                        tint = Color.White.copy(alpha = 0.9f),
+                                        modifier = Modifier.size(48.dp)
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "📸 SARY TSARA KALITATY (HD PHOTO)",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
+                                }
+
+                                Surface(
+                                    color = Color.Black.copy(alpha = 0.75f),
+                                    shape = RoundedCornerShape(8.dp),
+                                    modifier = Modifier.align(Alignment.BottomEnd)
+                                ) {
+                                    Text(
+                                        text = "Vidy: ${formatAriary(post.priceAr)}",
+                                        fontSize = 12.sp,
+                                        color = GoldSecondary,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        // Video Player Card Display
+                        Card(
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF1B1B1B)),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(160.dp)
+                        ) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Surface(
+                                        color = DarkGreenPrimary,
+                                        shape = CircleShape,
+                                        modifier = Modifier.size(54.dp)
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                imageVector = Icons.Default.PlayArrow,
+                                                contentDescription = "Mamely Video",
+                                                tint = Color.White,
+                                                modifier = Modifier.size(36.dp)
+                                            )
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Text(
+                                        text = "🎥 VIDEO PRESENTATION (${post.videoDurationText})",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
+                                    Text(
+                                        text = "Vidy: ${formatAriary(post.priceAr)}",
+                                        fontSize = 12.sp,
+                                        color = GoldSecondary,
+                                        fontWeight = FontWeight.ExtraBold
+                                    )
+                                }
                             }
                         }
                     }
 
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    // Action buttons: Like, Comment, Phone call
+                    // Action buttons: Like, Comment, Call Phone
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -436,6 +552,322 @@ fun VideoFeedContent(
                             Icon(imageVector = Icons.Default.Phone, contentDescription = null, modifier = Modifier.size(14.dp))
                             Spacer(modifier = Modifier.width(4.dp))
                             Text("Antsoy", fontSize = 11.sp)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun FacebookProfileContent(
+    profile: UserProfile,
+    myPosts: List<VideoPost>,
+    onEditProfile: () -> Unit,
+    onNewPost: () -> Unit
+) {
+    val context = LocalContext.current
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(bottom = 32.dp)
+    ) {
+        // Facebook Cover Photo & Profile Banner Card
+        item {
+            Card(
+                shape = RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column {
+                    // Cover Photo Background
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(130.dp)
+                            .background(
+                                Brush.horizontalGradient(
+                                    listOf(Color(profile.coverColorHex), Color(profile.avatarColorHex))
+                                )
+                            )
+                    ) {
+                        Surface(
+                            color = Color.Black.copy(alpha = 0.4f),
+                            shape = RoundedCornerShape(6.dp),
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(10.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            ) {
+                                Icon(imageVector = Icons.Default.PhotoCamera, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Sary Cover", color = Color.White, fontSize = 10.sp)
+                            }
+                        }
+                    }
+
+                    // Avatar & Profile Name Overlay
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .offset(y = (-40).dp)
+                    ) {
+                        Box(contentAlignment = Alignment.BottomEnd) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .size(84.dp)
+                                    .clip(CircleShape)
+                                    .border(3.dp, Color.White, CircleShape)
+                                    .background(Color(profile.avatarColorHex))
+                            ) {
+                                Text(
+                                    text = profile.avatarInitials,
+                                    fontSize = 30.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                            }
+                            Surface(
+                                color = GoldSecondary,
+                                shape = CircleShape,
+                                modifier = Modifier
+                                    .size(26.dp)
+                                    .clickable { onEditProfile() }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.CameraAlt,
+                                    contentDescription = "Hanova Sary",
+                                    tint = Color(0xFF281800),
+                                    modifier = Modifier
+                                        .padding(4.dp)
+                                        .fillMaxSize()
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = profile.name,
+                                fontWeight = FontWeight.ExtraBold,
+                                fontSize = 20.sp
+                            )
+                            if (profile.isVerified) {
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Icon(
+                                    imageVector = Icons.Default.Verified,
+                                    contentDescription = "Verified Badge",
+                                    tint = DarkGreenPrimary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+
+                        Surface(
+                            color = Color(profile.role.badgeColor).copy(alpha = 0.15f),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.padding(top = 4.dp)
+                        ) {
+                            Text(
+                                text = "👑 ${profile.role.displayName}",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(profile.role.badgeColor),
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        Text(
+                            text = "📍 ${profile.location} • ⭐ ${profile.rating} Rating • 👥 ${profile.followersCount} Followers",
+                            fontSize = 12.sp,
+                            color = Color.Gray
+                        )
+                    }
+
+                    // Action buttons (Facebook Style)
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .offset(y = (-30).dp)
+                    ) {
+                        Button(
+                            onClick = onEditProfile,
+                            colors = ButtonDefaults.buttonColors(containerColor = DarkGreenPrimary),
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(imageVector = Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Mamaritra Profile", fontSize = 12.sp)
+                        }
+
+                        OutlinedButton(
+                            onClick = {
+                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://${profile.facebookPage}"))
+                                context.startActivity(intent)
+                            },
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(imageVector = Icons.Default.Public, contentDescription = null, tint = Color(0xFF1877F2), modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("FB Page", fontSize = 12.sp, color = Color(0xFF1877F2), fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+        }
+
+        // Bio & Contact Details Card
+        item {
+            Card(
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 6.dp)
+            ) {
+                Column(modifier = Modifier.padding(14.dp)) {
+                    Text("ℹ️ Fanazavana momba ny Profil (Bio)", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(profile.bio, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+                    Divider(modifier = Modifier.padding(vertical = 10.dp))
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(imageVector = Icons.Default.Phone, contentDescription = null, tint = DarkGreenPrimary, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Laharana Telefona: ", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text(profile.phone, fontSize = 12.sp)
+                    }
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(imageVector = Icons.Default.Chat, contentDescription = null, tint = Color(0xFF25D366), modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("WhatsApp: ", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text(profile.whatsappNumber, fontSize = 12.sp)
+                    }
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(imageVector = Icons.Default.Public, contentDescription = null, tint = Color(0xFF1877F2), modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Lien Facebook: ", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text(profile.facebookPage, fontSize = 12.sp, color = Color(0xFF1877F2))
+                    }
+                }
+            }
+        }
+
+        // Post Status Launcher Bar (Facebook style)
+        item {
+            Card(
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 6.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .padding(12.dp)
+                        .clickable { onNewPost() }
+                ) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(Color(profile.avatarColorHex))
+                    ) {
+                        Text(profile.avatarInitials, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    }
+
+                    Spacer(modifier = Modifier.width(10.dp))
+
+                    Text(
+                        text = "Ahoana ny vaovao ampiasainao ${profile.name}? Mandefa Sary na Video...",
+                        fontSize = 12.sp,
+                        color = Color.Gray,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    IconButton(onClick = onNewPost) {
+                        Icon(imageVector = Icons.Default.PhotoLibrary, contentDescription = "Post Sary", tint = DarkGreenPrimary)
+                    }
+                }
+            }
+        }
+
+        // User's Published Posts Header & List
+        item {
+            Text(
+                text = "📸 Sary sy Post napetrakao (${myPosts.size})",
+                fontWeight = FontWeight.Bold,
+                fontSize = 15.sp,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+            )
+        }
+
+        if (myPosts.isEmpty()) {
+            item {
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(20.dp)
+                    ) {
+                        Text("Tsy mbola nandefa Sary na Video ianao.", fontSize = 12.sp, color = Color.Gray)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Button(onClick = onNewPost, colors = ButtonDefaults.buttonColors(containerColor = DarkGreenPrimary)) {
+                            Text("Mandefa Sary Voalohany")
+                        }
+                    }
+                }
+            }
+        } else {
+            items(myPosts, key = { it.id }) { post ->
+                Card(
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 4.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (post.mediaType == "PHOTO") Icons.Default.Image else Icons.Default.Videocam,
+                            contentDescription = null,
+                            tint = DarkGreenPrimary,
+                            modifier = Modifier.size(32.dp)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(post.title, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            Text("${post.category} • ${formatAriary(post.priceAr)}", fontSize = 11.sp, color = DarkGreenPrimary, fontWeight = FontWeight.SemiBold)
+                            Text("${post.likesCount} Likes • ${post.commentsCount} Comments", fontSize = 10.sp, color = Color.Gray)
                         }
                     }
                 }
@@ -555,7 +987,6 @@ fun DirectChatContent(
     onSend: () -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
-        // Chat list
         LazyColumn(
             modifier = Modifier
                 .weight(1f)
@@ -600,7 +1031,6 @@ fun DirectChatContent(
             }
         }
 
-        // Input Box
         Surface(
             tonalElevation = 4.dp,
             modifier = Modifier.fillMaxWidth()
@@ -716,15 +1146,17 @@ fun RoleSelectorModal(
 }
 
 @Composable
-fun PublishVideoDialog(
+fun PublishMediaDialog(
     userRole: UserRole,
     onDismiss: () -> Unit,
-    onPublish: (title: String, desc: String, priceAr: Long, category: String) -> Unit
+    onPublish: (title: String, desc: String, priceAr: Long, category: String, mediaType: String, photoTag: String) -> Unit
 ) {
+    var mediaType by remember { mutableStateOf("PHOTO") } // "PHOTO" or "VIDEO"
     var title by remember { mutableStateOf("") }
     var desc by remember { mutableStateOf("") }
     var priceText by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("Akoho & Vorona") }
+    var photoTag by remember { mutableStateOf("🐖 KISOA VOKATRA (SARY)") }
 
     val priceVal = priceText.toLongOrNull() ?: 0L
 
@@ -732,24 +1164,60 @@ fun PublishVideoDialog(
         onDismissRequest = onDismiss,
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(imageVector = Icons.Default.Videocam, contentDescription = null, tint = DarkGreenPrimary)
+                Icon(
+                    imageVector = if (mediaType == "PHOTO") Icons.Default.AddAPhoto else Icons.Default.Videocam,
+                    contentDescription = null,
+                    tint = DarkGreenPrimary
+                )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("📹 Handefa Video Vokatra", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text("📸 Mandefa Sary na Video", fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    text = "Profil: ${userRole.displayName}",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = DarkGreenPrimary
-                )
+                // Media Type Switcher: Photo vs Video
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    FilterChip(
+                        selected = mediaType == "PHOTO",
+                        onClick = { mediaType = "PHOTO" },
+                        label = { Text("🖼️ Mandefa Sary (Photo)", fontSize = 11.sp) },
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    FilterChip(
+                        selected = mediaType == "VIDEO",
+                        onClick = { mediaType = "VIDEO" },
+                        label = { Text("📹 Mandefa Video", fontSize = 11.sp) },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                if (mediaType == "PHOTO") {
+                    Text("Safidio ny Tag amin'ny Sary:", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    val photoTags = listOf(
+                        "🐖 KISOA VOKATRA (SARY)",
+                        "🐔 AKOHO GASY (SARY)",
+                        "🌾 VARY & KATSAKA (SARY)",
+                        "🥕 LEGIOMA TSENA (SARY)"
+                    )
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        items(photoTags) { tag ->
+                            FilterChip(
+                                selected = photoTag == tag,
+                                onClick = { photoTag = tag },
+                                label = { Text(tag, fontSize = 9.sp) }
+                            )
+                        }
+                    }
+                }
 
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("Lohatenin'ny Video (ex: Jereo ny kisoa miteraka)") },
+                    label = { Text("Lohateny (ex: Kisoa miteraka 12 salama tsara)") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
@@ -766,7 +1234,7 @@ fun PublishVideoDialog(
                 OutlinedTextField(
                     value = desc,
                     onValueChange = { desc = it },
-                    label = { Text("Fanazavana fohy ny vokatra...") },
+                    label = { Text("Fanazavana fohy momba ny Sary/Video...") },
                     modifier = Modifier.fillMaxWidth(),
                     maxLines = 3
                 )
@@ -776,12 +1244,143 @@ fun PublishVideoDialog(
             Button(
                 onClick = {
                     if (title.isNotEmpty() && priceVal > 0) {
-                        onPublish(title, desc, priceVal, category)
+                        onPublish(title, desc, priceVal, category, mediaType, photoTag)
                     }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = DarkGreenPrimary)
             ) {
-                Text("Mandefa Video")
+                Text(if (mediaType == "PHOTO") "Mandefa Sary" else "Mandefa Video")
+            }
+        },
+        dismissButton = {
+            OutlinedButton(onClick = onDismiss) {
+                Text("Akanjo")
+            }
+        }
+    )
+}
+
+@Composable
+fun EditProfileModal(
+    profile: UserProfile,
+    onDismiss: () -> Unit,
+    onSave: (name: String, phone: String, loc: String, bio: String, fbPage: String, wa: String, avatarColor: Long, coverColor: Long) -> Unit
+) {
+    var name by remember { mutableStateOf(profile.name) }
+    var phone by remember { mutableStateOf(profile.phone) }
+    var location by remember { mutableStateOf(profile.location) }
+    var bio by remember { mutableStateOf(profile.bio) }
+    var fbPage by remember { mutableStateOf(profile.facebookPage) }
+    var waNumber by remember { mutableStateOf(profile.whatsappNumber) }
+
+    var selectedColor by remember { mutableLongStateOf(profile.avatarColorHex) }
+
+    val colorOptions = listOf(
+        0xFF2E7D32 to "Maitso Tantsaha",
+        0xFFE65100 to "Manjarano Grossiste",
+        0xFF1565C0 to "Manga Mpivarotra",
+        0xFF6A1B9A to "Violets VIP"
+    )
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(imageVector = Icons.Default.Edit, contentDescription = null, tint = DarkGreenPrimary)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("✏️ Hanova Fampahalalana Profil", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            }
+        },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Anarana sy Fanampiny") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+
+                OutlinedTextField(
+                    value = phone,
+                    onValueChange = { phone = it },
+                    label = { Text("Laharana Telefona (Contact)") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+
+                OutlinedTextField(
+                    value = location,
+                    onValueChange = { location = it },
+                    label = { Text("Toerana (ex: Antananarivo - Ivato)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+
+                OutlinedTextField(
+                    value = bio,
+                    onValueChange = { bio = it },
+                    label = { Text("Bio / Fanazavana momba ny asa") },
+                    modifier = Modifier.fillMaxWidth(),
+                    maxLines = 2
+                )
+
+                OutlinedTextField(
+                    value = fbPage,
+                    onValueChange = { fbPage = it },
+                    label = { Text("Lien Pejy Facebook (ex: facebook.com/myfarm)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+
+                OutlinedTextField(
+                    value = waNumber,
+                    onValueChange = { waNumber = it },
+                    label = { Text("Laharana WhatsApp") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+
+                Text("Loko sy Sary Avatar:", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    colorOptions.forEach { (hex, colorName) ->
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(Color(hex))
+                                .border(
+                                    width = if (selectedColor == hex) 3.dp else 0.dp,
+                                    color = if (selectedColor == hex) GoldSecondary else Color.Transparent,
+                                    shape = CircleShape
+                                )
+                                .clickable { selectedColor = hex }
+                        ) {
+                            if (selectedColor == hex) {
+                                Icon(imageVector = Icons.Default.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    onSave(name, phone, location, bio, fbPage, waNumber, selectedColor, selectedColor)
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = DarkGreenPrimary)
+            ) {
+                Text("Tahirizo ny Profil")
             }
         },
         dismissButton = {

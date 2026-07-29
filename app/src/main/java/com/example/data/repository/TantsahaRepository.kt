@@ -725,6 +725,7 @@ Aina sy rano: tondrahy fitaovana hatrany, avadika isaky ny 15 andro. Afaka 60-90
             location = "Ivato, Antananarivo",
             title = "🎥 Jereo ny fahatsaran'ireto akoho gasy nohatsaraina ampiasaina ho mpanatodizana!",
             description = "Filming mivantana avy ao amin meuble fiompiana. Akoho 60 efa hovidiana, manatody anio. Antsoy mivantana raha mila grossiste na déteil.",
+            mediaType = "VIDEO",
             videoDurationText = "1:20",
             priceAr = 28000,
             likesCount = 245,
@@ -734,6 +735,23 @@ Aina sy rano: tondrahy fitaovana hatrany, avadika isaky ny 15 andro. Afaka 60-90
             category = "Akoho & Vorona"
         ),
         VideoPost(
+            id = "p_1",
+            authorName = "Rakoto Jean (Tantsaha)",
+            authorRole = UserRole.TANTSAHA,
+            authorPhone = "034 12 345 67",
+            location = "Ivato, Antananarivo",
+            title = "📸 Sary: Kisoa miteraka 12 salama tsara vao nateraka tamin'ity maraina ity",
+            description = "Ireo kisoa kely vao teraka tamin'ny 5 ora maraina. Providence matanjaka, efa ampy reny sy mihinana matetika. Misy alaina afaka 1 volana.",
+            mediaType = "PHOTO",
+            photoTag = "🐖 KISOA VOKATRA (SARY)",
+            priceAr = 120000,
+            likesCount = 310,
+            commentsCount = 42,
+            sharesCount = 25,
+            datePosted = "3 adiny lasa",
+            category = "Kisoa & Omby"
+        ),
+        VideoPost(
             id = "v_2",
             authorName = "Coopérative Alaotra (Grossiste Vary)",
             authorRole = UserRole.GROSSISTE,
@@ -741,6 +759,7 @@ Aina sy rano: tondrahy fitaovana hatrany, avadika isaky ny 15 andro. Afaka 60-90
             location = "Ambatondrazaka",
             title = "📹 Camion 10 tonnes Vary Makalioka vao tonga ao amin'ny dépôt gros!",
             description = "Tonga anio ny jinjana vary makalioka SRI vaovao. Manolotra prix grossiste ho an'ny mpivarotra madinika amin'ny gony 50kg sy kamiao.",
+            mediaType = "VIDEO",
             videoDurationText = "0:55",
             priceAr = 160000,
             likesCount = 512,
@@ -750,20 +769,21 @@ Aina sy rano: tondrahy fitaovana hatrany, avadika isaky ny 15 andro. Afaka 60-90
             category = "Vary & Legioma"
         ),
         VideoPost(
-            id = "v_3",
+            id = "p_2",
             authorName = "Pauline Rasoa (Mpivarotra Madinika)",
             authorRole = UserRole.MPIVAROTRA_MADINIKA,
             authorPhone = "032 88 990 00",
             location = "Anosibe Market, Antananarivo",
-            title = "🎥 Vidin-kisoa sy ny hena eny amin'ny bazary anio!",
-            description = "Fanamarihana ny vidim-piompiana sy hena eny an-tsena. Mitady grossiste mpamatsy kisoa salama avy any Antsirabe na Miarinarivo.",
-            videoDurationText = "2:10",
-            priceAr = 650000,
-            likesCount = 189,
-            commentsCount = 27,
-            sharesCount = 11,
-            datePosted = "1 andro lasa",
-            category = "Kisoa & Omby"
+            title = "📸 Sary tsena: Voatabia sy Karoty vaovao vao tonga avy any Vakinankaratra",
+            description = "Stock vaovao ho an'ny mpivarotra sy mpanjifa madinika. Voatabia be hena sy karoty mavo tsara, gony sy kagoy hovidina.",
+            mediaType = "PHOTO",
+            photoTag = "🥕 LEGIOMA TSENA (SARY)",
+            priceAr = 3500,
+            likesCount = 142,
+            commentsCount = 18,
+            sharesCount = 8,
+            datePosted = "8 adiny lasa",
+            category = "Vary & Legioma"
         )
     )
 
