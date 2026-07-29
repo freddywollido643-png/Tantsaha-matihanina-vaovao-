@@ -52,6 +52,8 @@ fun MarketplaceScreen(
 
     var showPostDialog by remember { mutableStateOf(false) }
     var showCommissionDashboard by remember { mutableStateOf(false) }
+    var showVipSubscriptionDialog by remember { mutableStateOf(false) }
+    var showSponsoredAdDialog by remember { mutableStateOf(false) }
     var showAdSettings by remember { mutableStateOf(false) }
     var selectedItemForOrder by remember { mutableStateOf<MarketplaceItem?>(null) }
     var orderSuccessMessage by remember { mutableStateOf<String?>(null) }
@@ -147,27 +149,27 @@ fun MarketplaceScreen(
                             Spacer(modifier = Modifier.height(12.dp))
 
                             Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Button(
                                     onClick = { showPostDialog = true },
                                     colors = ButtonDefaults.buttonColors(containerColor = GoldSecondary),
                                     shape = RoundedCornerShape(12.dp),
-                                    modifier = Modifier.weight(1f)
+                                    modifier = Modifier.weight(1.1f)
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Add,
                                         contentDescription = null,
                                         tint = Color(0xFF281800),
-                                        modifier = Modifier.size(18.dp)
+                                        modifier = Modifier.size(16.dp)
                                     )
-                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Spacer(modifier = Modifier.width(2.dp))
                                     Text(
-                                        text = "Hamidy Vokatra",
+                                        text = "Hamidy",
                                         fontWeight = FontWeight.Bold,
                                         color = Color(0xFF281800),
-                                        fontSize = 13.sp
+                                        fontSize = 12.sp
                                     )
                                 }
 
@@ -182,13 +184,34 @@ fun MarketplaceScreen(
                                         imageVector = Icons.Default.Analytics,
                                         contentDescription = null,
                                         tint = Color.White,
-                                        modifier = Modifier.size(18.dp)
+                                        modifier = Modifier.size(16.dp)
                                     )
-                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Spacer(modifier = Modifier.width(2.dp))
                                     Text(
-                                        text = "Kajy Commission",
+                                        text = "Commission",
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 12.sp
+                                        fontSize = 11.sp
+                                    )
+                                }
+
+                                OutlinedButton(
+                                    onClick = { showVipSubscriptionDialog = true },
+                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = GoldSecondary),
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, GoldSecondary),
+                                    shape = RoundedCornerShape(12.dp),
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Star,
+                                        contentDescription = null,
+                                        tint = GoldSecondary,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(2.dp))
+                                    Text(
+                                        text = "👑 VIP",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 11.sp
                                     )
                                 }
                             }
@@ -341,10 +364,14 @@ fun MarketplaceScreen(
         )
     }
 
-    // Fullscreen AdMob Interstitial Modal
-    if (showInterstitial) {
-        AdMobInterstitialModal(
-            onCloseAd = { viewModel.dismissInterstitialAd() }
+    // Dialog 5: VIP Subscription Modal
+    if (showVipSubscriptionDialog) {
+        VipSubscriptionModal(
+            onDismiss = { showVipSubscriptionDialog = false },
+            onSubscribeSuccess = { planName ->
+                showVipSubscriptionDialog = false
+                orderSuccessMessage = "Misaotra betsaka! Lasa Mpikambana VIP ($planName) ianao izao."
+            }
         )
     }
 }
@@ -1015,4 +1042,135 @@ fun CommissionDashboardModal(
 fun formatAriary(amount: Long): String {
     val formatter = NumberFormat.getNumberInstance(Locale.FRANCE)
     return "${formatter.format(amount)} Ar"
+}
+
+@Composable
+fun VipSubscriptionModal(
+    onDismiss: () -> Unit,
+    onSubscribeSuccess: (String) -> Unit
+) {
+    var selectedPlan by remember { mutableStateOf("1 Volana (5 000 Ar)") }
+    var selectedPayment by remember { mutableStateOf("MVola") }
+    var phoneInput by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.Star,
+                    contentDescription = null,
+                    tint = GoldSecondary
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("👑 Abonnement VIP Tantsaha", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            }
+        },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+            ) {
+                Text(
+                    text = "Lasa Mpikambana VIP hampiakatra ny tombony amin'ny fiompiana sy fambolena:",
+                    fontSize = 12.sp,
+                    color = Color.Gray
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // VIP Perks List
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF8E1)),
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(10.dp)) {
+                        Text("✨ TOMBONY AZO (VIP Perks):", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color(0xFFE65100))
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text("• 0% Commission amin'ny varotra ao amin'ny Tsena Online", fontSize = 11.sp, color = Color(0xFF3E2723))
+                        Text("• Badge VIP Mpivarotra Vedette (Ahitana anao voalohany)", fontSize = 11.sp, color = Color(0xFF3E2723))
+                        Text("• Miditra maimaimpoana amin'ny Boky PDF & Ebooks rehetra", fontSize = 11.sp, color = Color(0xFF3E2723))
+                        Text("• AI Assistant miteny Malagasy tsy misy fetra 24/7", fontSize = 11.sp, color = Color(0xFF3E2723))
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text("Safidio ny Faharetany (Plan):", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                val plans = listOf(
+                    "1 Volana (5 000 Ar)" to "5 000 Ar/m",
+                    "3 Volana (12 000 Ar)" to "4 000 Ar/m (-20%)",
+                    "1 Taona (40 000 Ar)" to "3 333 Ar/m (-33%)"
+                )
+
+                plans.forEach { (planTitle, discount) ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { selectedPlan = planTitle }
+                            .padding(vertical = 2.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            RadioButton(
+                                selected = selectedPlan == planTitle,
+                                onClick = { selectedPlan = planTitle }
+                            )
+                            Text(text = planTitle, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                        }
+                        Text(text = discount, fontSize = 10.sp, color = DarkGreenPrimary, fontWeight = FontWeight.Bold)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Text("Fandoavam-bola via Mobile Money:", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                val paymentMethods = listOf("MVola (Telma)", "Orange Money", "Airtel Money")
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    paymentMethods.forEach { method ->
+                        FilterChip(
+                            selected = selectedPayment == method,
+                            onClick = { selectedPayment = method },
+                            label = { Text(method, fontSize = 10.sp) },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                OutlinedTextField(
+                    value = phoneInput,
+                    onValueChange = { phoneInput = it },
+                    label = { Text("Laharana Mobile Money (ex: 034 xx xxx xx)") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    if (phoneInput.length >= 8) {
+                        onSubscribeSuccess(selectedPlan)
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = DarkGreenPrimary)
+            ) {
+                Text("Mandoa Vola & Lasa VIP")
+            }
+        },
+        dismissButton = {
+            OutlinedButton(onClick = onDismiss) {
+                Text("Akanjo")
+            }
+        }
+    )
 }
