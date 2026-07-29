@@ -1,4 +1,4 @@
-name: Générer APK Android
+name: Générer APK Flutter
 
 on:
   push:
@@ -21,17 +21,19 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Configurer Gradle
-        uses: gradle/actions/setup-gradle@v3
+      - name: Configurer Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
 
-      - name: Donner les permissions d'exécution à Gradle
-        run: chmod +x gradlew
+      - name: Récupérer les dépendances
+        run: flutter pub get
 
-      - name: Compiler et générer l'APK Debug
-        run: ./gradlew assembleDebug
+      - name: Compiler l'APK
+        run: flutter build apk --release
 
-      - name: Sauvegarder et rendre l'APK téléchargeable
+      - name: Sauvegarder l'APK
         uses: actions/upload-artifact@v4
         with:
-          name: Mon-Application-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: Application-Flutter-APK
+          path: build/app/outputs/flutter-apk/app-release.apk
