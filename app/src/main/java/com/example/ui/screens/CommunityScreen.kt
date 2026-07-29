@@ -52,13 +52,16 @@ fun CommunityScreen(
     var showRoleSelector by remember { mutableStateOf(false) }
     var showNewPostDialog by remember { mutableStateOf(false) }
     var showEditProfileDialog by remember { mutableStateOf(false) }
+    var selectedVideoForPlayer by remember { mutableStateOf<VideoPost?>(null) }
+    var selectedPhotoForViewer by remember { mutableStateOf<VideoPost?>(null) }
+
     var chatInputText by remember { mutableStateOf("") }
     var toastMessage by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
         topBar = {
             TantsahaAppHeader(
-                title = "Réseau Tantsaha & FB Profile",
+                title = "Réseau Tantsaha & Profile",
                 subtitle = "Tsy miankina amin'ny Facebook (Tantsaha, Grossiste, Retailer)",
                 badgeText = "Compte: ${currentUser.role.displayName.take(14)}...",
                 onBadgeClick = { showRoleSelector = true }
@@ -77,7 +80,7 @@ fun CommunityScreen(
                 colors = CardDefaults.cardColors(containerColor = DarkGreenPrimary),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 6.dp)
+                    .padding(horizontal = 14.dp, vertical = 6.dp)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -183,13 +186,17 @@ fun CommunityScreen(
                     0 -> FeedMediaContent(
                         posts = videoPosts,
                         onLike = { viewModel.likeVideoPost(it) },
-                        onNewPost = { showNewPostDialog = true }
+                        onNewPost = { showNewPostDialog = true },
+                        onOpenVideo = { selectedVideoForPlayer = it },
+                        onOpenPhoto = { selectedPhotoForViewer = it }
                     )
                     1 -> FacebookProfileContent(
                         profile = currentUser,
                         myPosts = videoPosts.filter { it.authorPhone == currentUser.phone || it.authorName.contains(currentUser.name) },
                         onEditProfile = { showEditProfileDialog = true },
-                        onNewPost = { showNewPostDialog = true }
+                        onNewPost = { showNewPostDialog = true },
+                        onOpenVideo = { selectedVideoForPlayer = it },
+                        onOpenPhoto = { selectedPhotoForViewer = it }
                     )
                     2 -> GroupsContent(
                         groups = groups,
@@ -260,13 +267,33 @@ fun CommunityScreen(
             }
         )
     }
+
+    // Modal 4: Interactive Video Player Dialog
+    selectedVideoForPlayer?.let { post ->
+        VideoPlayerModal(
+            post = post,
+            onDismiss = { selectedVideoForPlayer = null },
+            onLike = { viewModel.likeVideoPost(post.id) }
+        )
+    }
+
+    // Modal 5: Interactive Photo Viewer Dialog
+    selectedPhotoForViewer?.let { post ->
+        PhotoViewerModal(
+            post = post,
+            onDismiss = { selectedPhotoForViewer = null },
+            onLike = { viewModel.likeVideoPost(post.id) }
+        )
+    }
 }
 
 @Composable
 fun FeedMediaContent(
     posts: List<VideoPost>,
     onLike: (String) -> Unit,
-    onNewPost: () -> Unit
+    onNewPost: () -> Unit,
+    onOpenVideo: (VideoPost) -> Unit,
+    onOpenPhoto: (VideoPost) -> Unit
 ) {
     val context = LocalContext.current
 
@@ -284,7 +311,7 @@ fun FeedMediaContent(
                 colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF8E1)),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 6.dp)
+                    .padding(horizontal = 14.dp, vertical = 6.dp)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -299,7 +326,7 @@ fun FeedMediaContent(
                             color = Color(0xFFE65100)
                         )
                         Text(
-                            text = "Asehoy ny akoho, kisoa, vary na ny legiomanao mba hahazoana mpambongadiny.",
+                            text = "Asehoy ny akoho, kisoa, vary na legiomanao mba hahazoana mpanjifa.",
                             fontSize = 11.sp,
                             color = Color(0xFF3E2723)
                         )
@@ -325,7 +352,7 @@ fun FeedMediaContent(
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 6.dp)
+                    .padding(horizontal = 14.dp, vertical = 6.dp)
             ) {
                 Column(modifier = Modifier.padding(14.dp)) {
                     // Author Header & Badge
@@ -396,15 +423,15 @@ fun FeedMediaContent(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // Simulated Photo vs Video Display Container
+                    // Photo vs Video Media Container (Clickable to open full player / viewer)
                     if (post.mediaType == "PHOTO") {
-                        // Photo Card Display
                         Card(
                             shape = RoundedCornerShape(12.dp),
                             colors = CardDefaults.cardColors(containerColor = Color(0xFF263238)),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(170.dp)
+                                .clickable { onOpenPhoto(post) }
                         ) {
                             Box(
                                 modifier = Modifier
@@ -438,11 +465,11 @@ fun FeedMediaContent(
                                         imageVector = Icons.Default.Image,
                                         contentDescription = "Sary Vokatra",
                                         tint = Color.White.copy(alpha = 0.9f),
-                                        modifier = Modifier.size(48.dp)
+                                        modifier = Modifier.size(44.dp)
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Text(
-                                        text = "📸 SARY TSARA KALITATY (HD PHOTO)",
+                                        text = "📸 SARY HD (Kitiho hijerena sary feno)",
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = Color.White
@@ -455,7 +482,7 @@ fun FeedMediaContent(
                                     modifier = Modifier.align(Alignment.BottomEnd)
                                 ) {
                                     Text(
-                                        text = "Vidy: ${formatAriary(post.priceAr)}",
+                                        text = "Vidy: ${formatAriaryComm(post.priceAr)}",
                                         fontSize = 12.sp,
                                         color = GoldSecondary,
                                         fontWeight = FontWeight.ExtraBold,
@@ -465,13 +492,14 @@ fun FeedMediaContent(
                             }
                         }
                     } else {
-                        // Video Player Card Display
+                        // Video Player Interactive Card Display
                         Card(
                             shape = RoundedCornerShape(12.dp),
                             colors = CardDefaults.cardColors(containerColor = Color(0xFF1B1B1B)),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(160.dp)
+                                .clickable { onOpenVideo(post) }
                         ) {
                             Box(
                                 contentAlignment = Alignment.Center,
@@ -494,13 +522,13 @@ fun FeedMediaContent(
                                     }
                                     Spacer(modifier = Modifier.height(6.dp))
                                     Text(
-                                        text = "🎥 VIDEO PRESENTATION (${post.videoDurationText})",
+                                        text = "🎥 KITIHO MPO MAMAFA VIDEO (${post.videoDurationText})",
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = Color.White
                                     )
                                     Text(
-                                        text = "Vidy: ${formatAriary(post.priceAr)}",
+                                        text = "Vidy: ${formatAriaryComm(post.priceAr)}",
                                         fontSize = 12.sp,
                                         color = GoldSecondary,
                                         fontWeight = FontWeight.ExtraBold
@@ -525,16 +553,12 @@ fun FeedMediaContent(
                                 Text("${post.likesCount}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
                             }
 
-                            TextButton(onClick = { }) {
+                            TextButton(onClick = {
+                                if (post.mediaType == "VIDEO") onOpenVideo(post) else onOpenPhoto(post)
+                            }) {
                                 Icon(imageVector = Icons.Default.Comment, contentDescription = null, tint = DarkGreenPrimary, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text("${post.commentsCount}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
-                            }
-
-                            TextButton(onClick = { }) {
-                                Icon(imageVector = Icons.Default.Share, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(16.dp))
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("${post.sharesCount}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
                             }
                         }
 
@@ -565,7 +589,9 @@ fun FacebookProfileContent(
     profile: UserProfile,
     myPosts: List<VideoPost>,
     onEditProfile: () -> Unit,
-    onNewPost: () -> Unit
+    onNewPost: () -> Unit,
+    onOpenVideo: (VideoPost) -> Unit,
+    onOpenPhoto: (VideoPost) -> Unit
 ) {
     val context = LocalContext.current
 
@@ -573,7 +599,6 @@ fun FacebookProfileContent(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 32.dp)
     ) {
-        // Facebook Cover Photo & Profile Banner Card
         item {
             Card(
                 shape = RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp),
@@ -581,7 +606,6 @@ fun FacebookProfileContent(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column {
-                    // Cover Photo Background
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -610,7 +634,6 @@ fun FacebookProfileContent(
                         }
                     }
 
-                    // Avatar & Profile Name Overlay
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier
@@ -693,7 +716,6 @@ fun FacebookProfileContent(
                         )
                     }
 
-                    // Action buttons (Facebook Style)
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier
@@ -736,7 +758,7 @@ fun FacebookProfileContent(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 6.dp)
+                    .padding(horizontal = 14.dp, vertical = 6.dp)
             ) {
                 Column(modifier = Modifier.padding(14.dp)) {
                     Text("ℹ️ Fanazavana momba ny Profil (Bio)", fontWeight = FontWeight.Bold, fontSize = 14.sp)
@@ -760,27 +782,18 @@ fun FacebookProfileContent(
                         Text("WhatsApp: ", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         Text(profile.whatsappNumber, fontSize = 12.sp)
                     }
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(imageVector = Icons.Default.Public, contentDescription = null, tint = Color(0xFF1877F2), modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Lien Facebook: ", fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                        Text(profile.facebookPage, fontSize = 12.sp, color = Color(0xFF1877F2))
-                    }
                 }
             }
         }
 
-        // Post Status Launcher Bar (Facebook style)
+        // Post Status Launcher Bar
         item {
             Card(
                 shape = RoundedCornerShape(14.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 6.dp)
+                    .padding(horizontal = 14.dp, vertical = 6.dp)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -814,13 +827,12 @@ fun FacebookProfileContent(
             }
         }
 
-        // User's Published Posts Header & List
         item {
             Text(
                 text = "📸 Sary sy Post napetrakao (${myPosts.size})",
                 fontWeight = FontWeight.Bold,
                 fontSize = 15.sp,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
             )
         }
 
@@ -830,7 +842,7 @@ fun FacebookProfileContent(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .padding(horizontal = 14.dp, vertical = 8.dp)
                 ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -851,7 +863,10 @@ fun FacebookProfileContent(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 4.dp)
+                        .padding(horizontal = 14.dp, vertical = 4.dp)
+                        .clickable {
+                            if (post.mediaType == "VIDEO") onOpenVideo(post) else onOpenPhoto(post)
+                        }
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -866,7 +881,7 @@ fun FacebookProfileContent(
                         Spacer(modifier = Modifier.width(10.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(post.title, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                            Text("${post.category} • ${formatAriary(post.priceAr)}", fontSize = 11.sp, color = DarkGreenPrimary, fontWeight = FontWeight.SemiBold)
+                            Text("${post.category} • ${formatAriaryComm(post.priceAr)}", fontSize = 11.sp, color = DarkGreenPrimary, fontWeight = FontWeight.SemiBold)
                             Text("${post.likesCount} Likes • ${post.commentsCount} Comments", fontSize = 10.sp, color = Color.Gray)
                         }
                     }
@@ -883,7 +898,7 @@ fun GroupsContent(
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = PaddingValues(14.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         item {
@@ -986,24 +1001,147 @@ fun DirectChatContent(
     onInputChange: (String) -> Unit,
     onSend: () -> Unit
 ) {
+    val context = LocalContext.current
+
+    val contactSellers = remember {
+        listOf(
+            Triple("Rakoto (Mpiompy Kisoa)", "+261 34 12 345 67", 0xFF2E7D32),
+            Triple("Rabary (Akoho Gasy Mahitsy)", "+261 32 98 765 43", 0xFFE65100),
+            Triple("Koloina (Mpivarotra Vary Marovoay)", "+261 33 45 678 90", 0xFF1565C0),
+            Triple("Rasoa (Mamboly Legioma Antsirabe)", "+261 34 56 789 01", 0xFF6A1B9A)
+        )
+    }
+
+    var selectedSellerIndex by remember { mutableIntStateOf(0) }
+    val currentSeller = contactSellers[selectedSellerIndex]
+
+    val quickReplyChips = listOf(
+        "👋 Manao ahoana, mbola misy ve ny vokatra?",
+        "💰 Firy ny vidiny farany ambany?",
+        "📍 Aiza ny toerana handraisana azy?",
+        "🚚 Manao livraison ve ianao?"
+    )
+
     Column(modifier = Modifier.fillMaxSize()) {
+        // Seller Contacts Switcher Bar
+        Surface(
+            color = MaterialTheme.colorScheme.surface,
+            shadowElevation = 2.dp,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+                Text(
+                    text = "👥 Mpivarotra & Tantsaha Azonao Resahina Direct:",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Gray
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    items(contactSellers.indices.toList()) { index ->
+                        val seller = contactSellers[index]
+                        val isSelected = index == selectedSellerIndex
+
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = { selectedSellerIndex = index },
+                            leadingIcon = {
+                                Box(
+                                    modifier = Modifier
+                                        .size(16.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(seller.third))
+                                )
+                            },
+                            label = {
+                                Text(
+                                    text = seller.first.take(18),
+                                    fontSize = 11.sp,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                )
+                            },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = DarkGreenPrimary,
+                                selectedLabelColor = Color.White
+                            )
+                        )
+                    }
+                }
+            }
+        }
+
+        // Active Seller Banner Header
+        Card(
+            shape = RoundedCornerShape(0.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(CircleShape)
+                            .background(Color(currentSeller.third))
+                    ) {
+                        Text(
+                            text = currentSeller.first.take(1),
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Column {
+                        Text(currentSeller.first, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                        Text(currentSeller.second, fontSize = 10.sp, color = Color.Gray)
+                    }
+                }
+
+                Button(
+                    onClick = {
+                        val intent = Intent(Intent.ACTION_DIAL).apply {
+                            data = Uri.parse("tel:${currentSeller.second.replace(" ", "")}")
+                        }
+                        context.startActivity(intent)
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = DarkGreenPrimary),
+                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Icon(imageVector = Icons.Default.Phone, contentDescription = null, modifier = Modifier.size(14.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Antsoy Direct", fontSize = 10.sp)
+                }
+            }
+        }
+
+        // Chat Messages Thread
         LazyColumn(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(horizontal = 14.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(messages) { msg ->
                 val alignment = if (msg.isMe) Alignment.CenterEnd else Alignment.CenterStart
-                val bubbleColor = if (msg.isMe) DarkGreenPrimary else MaterialTheme.colorScheme.surfaceVariant
-                val textColor = if (msg.isMe) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                val bubbleColor = if (msg.isMe) DarkGreenPrimary else MaterialTheme.colorScheme.surface
+                val textColor = if (msg.isMe) Color.White else MaterialTheme.colorScheme.onSurface
 
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = alignment) {
                     Card(
                         shape = RoundedCornerShape(14.dp),
                         colors = CardDefaults.cardColors(containerColor = bubbleColor),
-                        modifier = Modifier.widthIn(max = 280.dp)
+                        modifier = Modifier.widthIn(max = 290.dp)
                     ) {
                         Column(modifier = Modifier.padding(10.dp)) {
                             Text(
@@ -1031,18 +1169,35 @@ fun DirectChatContent(
             }
         }
 
+        // Quick Reply Suggestions Chips
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            items(quickReplyChips) { chipText ->
+                SuggestionChip(
+                    onClick = {
+                        onInputChange(chipText)
+                    },
+                    label = { Text(chipText, fontSize = 10.sp) }
+                )
+            }
+        }
+
+        // Bottom Input Row
         Surface(
             tonalElevation = 4.dp,
             modifier = Modifier.fillMaxWidth()
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(12.dp)
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
             ) {
                 OutlinedTextField(
                     value = inputText,
                     onValueChange = onInputChange,
-                    placeholder = { Text("Manehoa hafatra ho an'ny mpivarotra...") },
+                    placeholder = { Text("Soraty ny hafatra ho an'i ${currentSeller.first.take(10)}...", fontSize = 12.sp) },
                     shape = RoundedCornerShape(20.dp),
                     modifier = Modifier.weight(1f),
                     singleLine = true
@@ -1061,6 +1216,404 @@ fun DirectChatContent(
             }
         }
     }
+}
+
+@Composable
+fun VideoPlayerModal(
+    post: VideoPost,
+    onDismiss: () -> Unit,
+    onLike: () -> Unit
+) {
+    val context = LocalContext.current
+    var isPlaying by remember { mutableStateOf(true) }
+    var currentProgressSeconds by remember { mutableIntStateOf(14) }
+    var isMuted by remember { mutableStateOf(false) }
+    var commentText by remember { mutableStateOf("") }
+    val commentsList = remember { mutableStateListOf("Salama! Aiza ny toerana handraisana ireto kisoa/akoho ireto?", "Mbola misy livraison ve eto Antananarivo?") }
+
+    LaunchedEffect(isPlaying) {
+        while (isPlaying) {
+            kotlinx.coroutines.delay(1000L)
+            currentProgressSeconds = (currentProgressSeconds + 1) % 120
+        }
+    }
+
+    val formatTime = { secs: Int ->
+        val mins = secs / 60
+        val remaining = secs % 60
+        String.format("%02d:%02d", mins, remaining)
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false),
+        modifier = Modifier
+            .fillMaxWidth(0.95f)
+            .padding(vertical = 16.dp),
+        title = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(imageVector = Icons.Default.Videocam, contentDescription = null, tint = DarkGreenPrimary)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(post.title, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                }
+                IconButton(onClick = onDismiss) {
+                    Icon(imageVector = Icons.Default.Close, contentDescription = "Akatona")
+                }
+            }
+        },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 500.dp)
+            ) {
+                // Interactive Video Viewport Frame
+                Card(
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.Black),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(210.dp)
+                ) {
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        // Background gradient visual effect
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    Brush.verticalGradient(
+                                        listOf(Color(0xFF1B5E20), Color(0xFF000000))
+                                    )
+                                )
+                        )
+
+                        // Top Badges Overlay
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(10.dp)
+                                .align(Alignment.TopCenter)
+                        ) {
+                            Surface(
+                                color = Color.Red,
+                                shape = RoundedCornerShape(4.dp)
+                            ) {
+                                Text(
+                                    text = "🔴 LIVE VIDEO PLAYER (HD)",
+                                    color = Color.White,
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+
+                            Surface(
+                                color = Color.Black.copy(alpha = 0.6f),
+                                shape = RoundedCornerShape(4.dp)
+                            ) {
+                                Text(
+                                    text = formatTime(currentProgressSeconds) + " / 02:00",
+                                    color = Color.White,
+                                    fontSize = 10.sp,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+
+                        // Play/Pause Main Interactive Center Button
+                        IconButton(
+                            onClick = { isPlaying = !isPlaying },
+                            modifier = Modifier
+                                .size(60.dp)
+                                .align(Alignment.Center)
+                                .background(DarkGreenPrimary.copy(alpha = 0.85f), CircleShape)
+                        ) {
+                            Icon(
+                                imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                contentDescription = if (isPlaying) "Pause" else "Play",
+                                tint = Color.White,
+                                modifier = Modifier.size(38.dp)
+                            )
+                        }
+
+                        // Bottom Player Controls Bar
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.BottomCenter)
+                                .background(Color.Black.copy(alpha = 0.7f))
+                                .padding(horizontal = 10.dp, vertical = 4.dp)
+                        ) {
+                            Slider(
+                                value = currentProgressSeconds.toFloat(),
+                                onValueChange = { currentProgressSeconds = it.toInt() },
+                                valueRange = 0f..120f,
+                                colors = SliderDefaults.colors(
+                                    thumbColor = GoldSecondary,
+                                    activeTrackColor = DarkGreenPrimary
+                                ),
+                                modifier = Modifier.height(20.dp)
+                            )
+
+                            Row(
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = "Vidy: ${formatAriaryComm(post.priceAr)}",
+                                    color = GoldSecondary,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 11.sp
+                                )
+
+                                IconButton(
+                                    onClick = { isMuted = !isMuted },
+                                    modifier = Modifier.size(24.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = if (isMuted) Icons.Default.VolumeOff else Icons.Default.VolumeUp,
+                                        contentDescription = "Mute",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Post details & seller contact
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(post.authorName, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        Text("📍 ${post.location} • ${post.authorPhone}", fontSize = 11.sp, color = Color.Gray)
+                    }
+
+                    Button(
+                        onClick = {
+                            val intent = Intent(Intent.ACTION_DIAL).apply {
+                                data = Uri.parse("tel:${post.authorPhone.replace(" ", "")}")
+                            }
+                            context.startActivity(intent)
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = DarkGreenPrimary),
+                        shape = RoundedCornerShape(8.dp),
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
+                    ) {
+                        Icon(imageVector = Icons.Default.Phone, contentDescription = null, modifier = Modifier.size(14.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Antsoy", fontSize = 11.sp)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Comment Section inside Modal
+                Text("💬 Hevitry ny mpijery (${commentsList.size}):", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                LazyColumn(
+                    modifier = Modifier
+                        .height(80.dp)
+                        .fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    items(commentsList) { comment ->
+                        Surface(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(6.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(comment, fontSize = 10.sp, modifier = Modifier.padding(6.dp))
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedTextField(
+                        value = commentText,
+                        onValueChange = { commentText = it },
+                        placeholder = { Text("Soraty ny hevitrao...", fontSize = 11.sp) },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    IconButton(
+                        onClick = {
+                            if (commentText.isNotBlank()) {
+                                commentsList.add(commentText)
+                                commentText = ""
+                            }
+                        },
+                        modifier = Modifier.background(DarkGreenPrimary, CircleShape)
+                    ) {
+                        Icon(imageVector = Icons.Default.Send, contentDescription = "Send", tint = Color.White, modifier = Modifier.size(16.dp))
+                    }
+                }
+            }
+        },
+        confirmButton = {}
+    )
+}
+
+@Composable
+fun PhotoViewerModal(
+    post: VideoPost,
+    onDismiss: () -> Unit,
+    onLike: () -> Unit
+) {
+    val context = LocalContext.current
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false),
+        modifier = Modifier
+            .fillMaxWidth(0.95f)
+            .padding(vertical = 16.dp),
+        title = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(imageVector = Icons.Default.Image, contentDescription = null, tint = DarkGreenPrimary)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(post.title, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                }
+                IconButton(onClick = onDismiss) {
+                    Icon(imageVector = Icons.Default.Close, contentDescription = "Akatona")
+                }
+            }
+        },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 480.dp)
+            ) {
+                // HD Photo View Frame
+                Card(
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF263238)),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(220.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    listOf(Color(0xFF37474F), Color(0xFF1A237E))
+                                )
+                            )
+                            .padding(16.dp)
+                    ) {
+                        Surface(
+                            color = GoldSecondary,
+                            shape = RoundedCornerShape(6.dp),
+                            modifier = Modifier.align(Alignment.TopStart)
+                        ) {
+                            Text(
+                                text = post.photoTag,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF281800),
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
+
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.align(Alignment.Center)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Image,
+                                contentDescription = "Sary HD",
+                                tint = Color.White,
+                                modifier = Modifier.size(64.dp)
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "🖼️ SARY HD TSARA KALITATY",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+
+                        Surface(
+                            color = Color.Black.copy(alpha = 0.8f),
+                            shape = RoundedCornerShape(6.dp),
+                            modifier = Modifier.align(Alignment.BottomEnd)
+                        ) {
+                            Text(
+                                text = "Vidy: ${formatAriaryComm(post.priceAr)}",
+                                fontSize = 12.sp,
+                                color = GoldSecondary,
+                                fontWeight = FontWeight.ExtraBold,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Text(post.description, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(modifier = Modifier.height(6.dp))
+                Text("📍 Toerana: ${post.location} • Nampidirina: ${post.datePosted}", fontSize = 11.sp, color = Color.Gray)
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Button(
+                        onClick = {
+                            val intent = Intent(Intent.ACTION_DIAL).apply {
+                                data = Uri.parse("tel:${post.authorPhone.replace(" ", "")}")
+                            }
+                            context.startActivity(intent)
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = DarkGreenPrimary),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(imageVector = Icons.Default.Phone, contentDescription = null, modifier = Modifier.size(14.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Antsoy Ny Mpivarotra", fontSize = 11.sp)
+                    }
+
+                    OutlinedButton(
+                        onClick = onLike,
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(imageVector = Icons.Default.Favorite, contentDescription = null, tint = Color.Red, modifier = Modifier.size(14.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Tiako (${post.likesCount})", fontSize = 11.sp)
+                    }
+                }
+            }
+        },
+        confirmButton = {}
+    )
 }
 
 @Composable
@@ -1389,4 +1942,8 @@ fun EditProfileModal(
             }
         }
     )
+}
+
+private fun formatAriaryComm(amount: Long): String {
+    return String.format("%,d Ar", amount).replace(',', ' ')
 }

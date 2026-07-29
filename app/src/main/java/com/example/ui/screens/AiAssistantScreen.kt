@@ -2,6 +2,7 @@ package com.example.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -77,63 +78,83 @@ fun AiAssistantScreen(
                 .padding(padding)
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            // Status and Settings Header Card
+            // Status and Settings Header Card (Compact & responsive layout)
             Card(
                 shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 6.dp)
+                    .padding(horizontal = 14.dp, vertical = 6.dp)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Surface(
-                            shape = CircleShape,
-                            color = DarkGreenPrimary.copy(alpha = 0.15f),
-                            modifier = Modifier.size(32.dp)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(34.dp)
+                                .clip(CircleShape)
+                                .background(GoldSecondaryBright)
+                                .padding(2.dp)
                         ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = Icons.Default.Search,
-                                    contentDescription = null,
-                                    tint = DarkGreenPrimary,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
+                            Image(
+                                painter = painterResource(id = R.drawable.img_ai_tantsaha_1785239725790),
+                                contentDescription = "Tantsaha AI Avatar",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(CircleShape)
+                            )
                         }
                         Spacer(modifier = Modifier.width(8.dp))
-                        Column {
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Mikaroka amin'ny Banky Angona & AI",
+                                text = "Tantsaha AI 🟢 Mpanolotsaina",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 1
                             )
                             Text(
-                                text = "Mampidira teny gony na fanontaniana momba ny vokatrafy.",
+                                text = "Mikaroka sy manome torohevitra momba ny fambolena & fiompiana",
                                 fontSize = 10.sp,
-                                color = Color.Gray
+                                color = Color.Gray,
+                                maxLines = 1
                             )
                         }
                     }
 
-                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         IconButton(
                             onClick = { viewModel.clearChatHistory() },
-                            modifier = Modifier.size(32.dp)
+                            modifier = Modifier.size(30.dp)
                         ) {
-                            Icon(imageVector = Icons.Default.DeleteSweep, contentDescription = "Fafao Chat", tint = Color.Gray, modifier = Modifier.size(18.dp))
+                            Icon(
+                                imageVector = Icons.Default.DeleteSweep,
+                                contentDescription = "Fafao Chat",
+                                tint = Color.Gray,
+                                modifier = Modifier.size(18.dp)
+                            )
                         }
 
                         IconButton(
                             onClick = { showApiKeyModal = true },
-                            modifier = Modifier.size(32.dp)
+                            modifier = Modifier.size(30.dp)
                         ) {
-                            Icon(imageVector = Icons.Default.Settings, contentDescription = "Paramètres API", tint = DarkGreenPrimary, modifier = Modifier.size(18.dp))
+                            Icon(
+                                imageVector = Icons.Default.Settings,
+                                contentDescription = "Paramètres API",
+                                tint = DarkGreenPrimary,
+                                modifier = Modifier.size(18.dp)
+                            )
                         }
                     }
                 }
@@ -141,7 +162,7 @@ fun AiAssistantScreen(
 
             // Quick Category Filter Chips
             LazyRow(
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -163,7 +184,7 @@ fun AiAssistantScreen(
             // Chat Messages List
             LazyColumn(
                 state = listState,
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
@@ -185,14 +206,14 @@ fun AiAssistantScreen(
                                 modifier = Modifier.padding(12.dp)
                             ) {
                                 CircularProgressIndicator(
-                                    modifier = Modifier.size(20.dp),
+                                    modifier = Modifier.size(18.dp),
                                     color = DarkGreenPrimary,
                                     strokeWidth = 2.dp
                                 )
                                 Spacer(modifier = Modifier.width(10.dp))
                                 Text(
                                     text = "🔎 Mikaroka ao amin'ny banky angona sy mandika valiny feno...",
-                                    fontSize = 12.sp,
+                                    fontSize = 11.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -217,7 +238,7 @@ fun AiAssistantScreen(
                     OutlinedTextField(
                         value = inputText,
                         onValueChange = { inputText = it },
-                        placeholder = { Text("Mikaroka: Akoho, Kisoa, Vary, Voatabia...", fontSize = 13.sp) },
+                        placeholder = { Text("Mikaroka: Akoho, Kisoa, Vary, Voatabia...", fontSize = 12.sp) },
                         shape = RoundedCornerShape(24.dp),
                         modifier = Modifier.weight(1f),
                         maxLines = 3,
@@ -240,7 +261,7 @@ fun AiAssistantScreen(
                             }
                         },
                         modifier = Modifier
-                            .size(48.dp)
+                            .size(44.dp)
                             .clip(CircleShape)
                             .background(DarkGreenPrimary)
                     ) {
@@ -320,7 +341,7 @@ fun ChatBubbleItem(message: ChatMessage) {
         if (!isUser) {
             Box(
                 modifier = Modifier
-                    .size(36.dp)
+                    .size(32.dp)
                     .clip(CircleShape)
                     .background(GoldSecondaryBright)
                     .padding(2.dp)
@@ -347,7 +368,9 @@ fun ChatBubbleItem(message: ChatMessage) {
                 bottomEnd = if (isUser) 4.dp else 16.dp
             ),
             shadowElevation = 2.dp,
-            modifier = Modifier.widthIn(max = 300.dp)
+            modifier = Modifier
+                .weight(1f, fill = false)
+                .widthIn(max = 320.dp)
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
                 if (!isUser) {
@@ -357,7 +380,7 @@ fun ChatBubbleItem(message: ChatMessage) {
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = "Tantsaha AI",
+                            text = "Tantsaha AI 🟢",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             color = DarkGreenPrimary
@@ -391,14 +414,15 @@ fun ChatBubbleItem(message: ChatMessage) {
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
-                    .size(36.dp)
+                    .size(32.dp)
                     .clip(CircleShape)
                     .background(DarkGreenPrimary.copy(alpha = 0.2f))
             ) {
                 Icon(
                     imageVector = Icons.Default.Person,
                     contentDescription = "User",
-                    tint = DarkGreenPrimary
+                    tint = DarkGreenPrimary,
+                    modifier = Modifier.size(18.dp)
                 )
             }
         }
