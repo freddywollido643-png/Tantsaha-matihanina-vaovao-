@@ -37,6 +37,7 @@ class MainActivity : ComponentActivity() {
 
         val homeViewModel = HomeViewModel(repository)
         val marketplaceViewModel = MarketplaceViewModel(repository)
+        val communityViewModel = CommunityViewModel(repository)
         val livestockViewModel = LivestockViewModel(repository)
         val cropsViewModel = CropsViewModel(repository)
         val calculatorViewModel = CalculatorViewModel(repository)
@@ -50,6 +51,7 @@ class MainActivity : ComponentActivity() {
                 TantsahaMainApp(
                     homeViewModel = homeViewModel,
                     marketplaceViewModel = marketplaceViewModel,
+                    communityViewModel = communityViewModel,
                     livestockViewModel = livestockViewModel,
                     cropsViewModel = cropsViewModel,
                     calculatorViewModel = calculatorViewModel,
@@ -67,6 +69,7 @@ class MainActivity : ComponentActivity() {
 fun TantsahaMainApp(
     homeViewModel: HomeViewModel,
     marketplaceViewModel: MarketplaceViewModel,
+    communityViewModel: CommunityViewModel,
     livestockViewModel: LivestockViewModel,
     cropsViewModel: CropsViewModel,
     calculatorViewModel: CalculatorViewModel,
@@ -110,6 +113,11 @@ fun TantsahaMainApp(
             composable(Screen.Marketplace.route) {
                 MarketplaceScreen(
                     viewModel = marketplaceViewModel
+                )
+            }
+            composable(Screen.Community.route) {
+                CommunityScreen(
+                    viewModel = communityViewModel
                 )
             }
             composable(Screen.Livestock.route) {

@@ -263,3 +263,69 @@ class MarketplaceViewModel(private val repository: TantsahaRepository) : ViewMod
     }
 }
 
+class CommunityViewModel(private val repository: TantsahaRepository) : ViewModel() {
+    private val _currentUser = MutableStateFlow(UserProfile())
+    val currentUser: StateFlow<UserProfile> = _currentUser.asStateFlow()
+
+    private val _videoPosts = MutableStateFlow(repository.getVideoPosts())
+    val videoPosts: StateFlow<List<VideoPost>> = _videoPosts.asStateFlow()
+
+    private val _groups = MutableStateFlow(repository.getCommunityGroups())
+    val groups: StateFlow<List<CommunityGroup>> = _groups.asStateFlow()
+
+    private val _chatMessages = MutableStateFlow(repository.getCommunityMessages())
+    val chatMessages: StateFlow<List<CommunityMessage>> = _chatMessages.asStateFlow()
+
+    fun setUserRole(role: UserRole) {
+        _currentUser.value = _currentUser.value.copy(role = role)
+    }
+
+    fun updateUserProfile(name: String, phone: String, location: String, bio: String) {
+        _currentUser.value = _currentUser.value.copy(
+            name = name,
+            phone = phone,
+            location = location,
+            bio = bio
+        )
+    }
+
+    fun publishVideoPost(title: String, description: String, priceAr: Long, category: String) {
+        val newVideo = VideoPost(
+            id = "v_${System.currentTimeMillis()}",
+            authorName = "${_currentUser.value.name} (${_currentUser.value.role.displayName.take(12)})",
+            authorRole = _currentUser.value.role,
+            authorPhone = _currentUser.value.phone,
+            location = _currentUser.value.location,
+            title = "🎥 $title",
+            description = description,
+            videoDurationText = "1:15",
+            priceAr = priceAr,
+            likesCount = 1,
+            commentsCount = 0,
+            sharesCount = 0,
+            datePosted = "Vao haingana",
+            category = category
+        )
+        _videoPosts.value = listOf(newVideo) + _videoPosts.value
+    }
+
+    fun likeVideoPost(postId: String) {
+        _videoPosts.value = _videoPosts.value.map { post ->
+            if (post.id == postId) post.copy(likesCount = post.likesCount + 1) else post
+        }
+    }
+
+    fun sendChatMessage(text: String) {
+        if (text.isBlank()) return
+        val msg = CommunityMessage(
+            id = "cm_${System.currentTimeMillis()}",
+            senderName = "Moi (${_currentUser.value.name})",
+            senderRole = _currentUser.value.role,
+            text = text,
+            timeAgo = "Vao haingana",
+            isMe = true
+        )
+        _chatMessages.value = _chatMessages.value + msg
+    }
+}
+

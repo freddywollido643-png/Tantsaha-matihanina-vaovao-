@@ -142,7 +142,7 @@ fun HomeScreen(
                     elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .padding(horizontal = 16.dp, vertical = 6.dp)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -186,6 +186,64 @@ fun HomeScreen(
                             imageVector = Icons.Default.ChevronRight,
                             contentDescription = null,
                             tint = Color(0xFF281800)
+                        )
+                    }
+                }
+            }
+
+            // Réseau Video Tantsaha Highlight Card (Tsy miankina amin'ny FB)
+            item {
+                Card(
+                    onClick = { onNavigate(Screen.Community) },
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = DarkGreenPrimary),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 4.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(14.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .size(44.dp)
+                                    .clip(CircleShape)
+                                    .background(GoldSecondary)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.OndemandVideo,
+                                    contentDescription = "Réseau Video",
+                                    tint = Color(0xFF281800),
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    text = "🎬 RÉSEAU VIDEO & CHAT (TSY FB)",
+                                    fontWeight = FontWeight.ExtraBold,
+                                    fontSize = 14.sp,
+                                    color = Color.White
+                                )
+                                Text(
+                                    text = "Compte Tantsaha, Grossiste sy Mpivarotra • Video clips • Chat direct",
+                                    fontSize = 11.sp,
+                                    color = Color.White.copy(alpha = 0.85f)
+                                )
+                            }
+                        }
+
+                        Icon(
+                            imageVector = Icons.Default.ChevronRight,
+                            contentDescription = null,
+                            tint = Color.White
                         )
                     }
                 }

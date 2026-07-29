@@ -118,3 +118,54 @@ data class AdMobConfig(
     val isAdMobEnabled: Boolean = true
 )
 
+enum class UserRole(val displayName: String, val badgeColor: Long) {
+    TANTSAHA("Tantsaha (Mpiompy / Mamboly)", 0xFF2E7D32),
+    GROSSISTE("Grossiste (Mpambongadiny)", 0xFFE65100),
+    MPIVAROTRA_MADINIKA("Mpivarotra Madinika (Détaillant)", 0xFF1565C0)
+}
+
+data class UserProfile(
+    val id: String = "user_1",
+    val name: String = "Rakoto Jean",
+    val role: UserRole = UserRole.TANTSAHA,
+    val phone: String = "034 12 345 67",
+    val location: String = "Antananarivo (Ivato)",
+    val bio: String = "Mpiompy akoho gasy nohatsaraina sy kisoa miteraka.",
+    val isVerified: Boolean = true
+)
+
+data class VideoPost(
+    val id: String,
+    val authorName: String,
+    val authorRole: UserRole,
+    val authorPhone: String,
+    val location: String,
+    val title: String,
+    val description: String,
+    val videoDurationText: String = "0:45",
+    val priceAr: Long,
+    val likesCount: Int,
+    val commentsCount: Int,
+    val sharesCount: Int,
+    val datePosted: String = "Vao haingana",
+    val category: String = "Akoho & Vorona"
+)
+
+data class CommunityGroup(
+    val id: String,
+    val name: String,
+    val roleFocus: String,
+    val membersCount: Int,
+    val description: String,
+    val recentPost: String
+)
+
+data class CommunityMessage(
+    val id: String,
+    val senderName: String,
+    val senderRole: UserRole,
+    val text: String,
+    val timeAgo: String,
+    val isMe: Boolean = false
+)
+

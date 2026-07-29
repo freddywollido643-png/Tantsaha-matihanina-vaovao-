@@ -715,5 +715,102 @@ Aina sy rano: tondrahy fitaovana hatrany, avadika isaky ny 15 andro. Afaka 60-90
             description = "Omby tosika roa matanjaka zatra miasa tanimbary sy charrette. Salama tsara, vaksina charbon."
         )
     )
+
+    fun getVideoPosts(): List<VideoPost> = listOf(
+        VideoPost(
+            id = "v_1",
+            authorName = "Fermeur Jean (Mpiompy Akoho)",
+            authorRole = UserRole.TANTSAHA,
+            authorPhone = "034 12 345 67",
+            location = "Ivato, Antananarivo",
+            title = "🎥 Jereo ny fahatsaran'ireto akoho gasy nohatsaraina ampiasaina ho mpanatodizana!",
+            description = "Filming mivantana avy ao amin meuble fiompiana. Akoho 60 efa hovidiana, manatody anio. Antsoy mivantana raha mila grossiste na déteil.",
+            videoDurationText = "1:20",
+            priceAr = 28000,
+            likesCount = 245,
+            commentsCount = 38,
+            sharesCount = 19,
+            datePosted = "2 adiny lasa",
+            category = "Akoho & Vorona"
+        ),
+        VideoPost(
+            id = "v_2",
+            authorName = "Coopérative Alaotra (Grossiste Vary)",
+            authorRole = UserRole.GROSSISTE,
+            authorPhone = "033 11 223 34",
+            location = "Ambatondrazaka",
+            title = "📹 Camion 10 tonnes Vary Makalioka vao tonga ao amin'ny dépôt gros!",
+            description = "Tonga anio ny jinjana vary makalioka SRI vaovao. Manolotra prix grossiste ho an'ny mpivarotra madinika amin'ny gony 50kg sy kamiao.",
+            videoDurationText = "0:55",
+            priceAr = 160000,
+            likesCount = 512,
+            commentsCount = 84,
+            sharesCount = 62,
+            datePosted = "5 adiny lasa",
+            category = "Vary & Legioma"
+        ),
+        VideoPost(
+            id = "v_3",
+            authorName = "Pauline Rasoa (Mpivarotra Madinika)",
+            authorRole = UserRole.MPIVAROTRA_MADINIKA,
+            authorPhone = "032 88 990 00",
+            location = "Anosibe Market, Antananarivo",
+            title = "🎥 Vidin-kisoa sy ny hena eny amin'ny bazary anio!",
+            description = "Fanamarihana ny vidim-piompiana sy hena eny an-tsena. Mitady grossiste mpamatsy kisoa salama avy any Antsirabe na Miarinarivo.",
+            videoDurationText = "2:10",
+            priceAr = 650000,
+            likesCount = 189,
+            commentsCount = 27,
+            sharesCount = 11,
+            datePosted = "1 andro lasa",
+            category = "Kisoa & Omby"
+        )
+    )
+
+    fun getCommunityGroups(): List<CommunityGroup> = listOf(
+        CommunityGroup(
+            id = "g_1",
+            name = "🐔 Fiaraha-miasa Mpiompy Akoho Gasy & Nohatsaraina",
+            roleFocus = "Tantsaha & Grossiste",
+            membersCount = 1420,
+            description = "Vondrona hifanakalozana torohevitra, sakafo akoho, vaksiny ary hitadiavana mpambongadiny am-mora.",
+            recentPost = "Randria: Misy vaksiny HB1 sy LaSota ve eny Ivato anio?"
+        ),
+        CommunityGroup(
+            id = "g_2",
+            name = "🌾 Vondrona Grossiste & Mpambongadiny Vary Madagascar",
+            roleFocus = "Grossiste & Mpivarotra Madinika",
+            membersCount = 890,
+            description = "Vondrona manokana ho an'ny mpanangona, grossiste vary, katsaka ary voanjo manerana ny Nosy.",
+            recentPost = "Coop Alaotra: Vary Makalioka gony 50kg vao tonga 500 bags!"
+        ),
+        CommunityGroup(
+            id = "g_3",
+            name = "🐖 Resaka Fiompiana Kisoa & Varotra Hena",
+            roleFocus = "Mpiompy & Mpivarotra Madinika",
+            membersCount = 2150,
+            description = "Teknika fiompiana kisoa Large White, Landrace, sakafo provende ary fitadiavana mpividy kisoa vavy/miteraka.",
+            recentPost = "Pauline: Peste Porcine sy vaksina fiarovana."
+        )
+    )
+
+    fun getCommunityMessages(): List<CommunityMessage> = listOf(
+        CommunityMessage(
+            id = "cm_1",
+            senderName = "Coopérative Alaotra",
+            senderRole = UserRole.GROSSISTE,
+            text = "Salama Jean! Hitako ilay akoho gasy nohatsaraina napetrakao tamin'ny video. Mbola misy 30 akoho ve azonay vidina gros?",
+            timeAgo = "10 min lasa",
+            isMe = false
+        ),
+        CommunityMessage(
+            id = "cm_2",
+            senderName = "Moi (Rakoto Jean)",
+            senderRole = UserRole.TANTSAHA,
+            text = "Salama tompoko! Eny mbola misy 30 akoho manatody tsara. Mahazo fihenam-bidy 5% ianao satria mividy am-bonjy gros.",
+            timeAgo = "5 min lasa",
+            isMe = true
+        )
+    )
 }
 
