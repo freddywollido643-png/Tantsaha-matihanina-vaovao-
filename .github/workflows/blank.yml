@@ -17,21 +17,44 @@ jobs:
           distribution: temurin
           java-version: '22'
 
-      - name: Configurer les permissions et le trafic réseau (Sed Sécurisé)
+      - name: Hamorona Manifest vaovao madio sy misy Internet
         run: |
           MANIFEST="app/src/main/AndroidManifest.xml"
-          if [ -f "$MANIFEST" ]; then
-            # 1. Ajoute l'attribut usesCleartextTraffic="true" proprement dans la balise <application>
-            sed -i 's/<application/<application android:usesCleartextTraffic="true"/' "$MANIFEST"
-            
-            # 2. Ajoute les permissions Internet standards juste en dessous de la balise d'ouverture <manifest>
-            sed -i 's|<manifest[^>]*>|&\n    <uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />|' "$MANIFEST"
-            
-            echo "AndroidManifest mis à jour avec succès."
-          else
-            echo "Erreur : Manifeste introuvable."
-            exit 1
-          fi
+          
+          # Soloina rakitra madio sy tonga dia misy alàlana Internet ny Manifest
+          cat << 'EOF' > $MANIFEST
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://android.com"
+              xmlns:tools="http://android.com">
+
+              <uses-permission android:name="android.permission.INTERNET" />
+              <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+              <application
+                  android:allowBackup="true"
+                  android:dataExtractionRules="@xml/data_extraction_rules"
+                  android:fullBackupContent="@xml/backup_rules"
+                  android:icon="@mipmap/ic_launcher"
+                  android:label="Tantsaha"
+                  android:roundIcon="@mipmap/ic_launcher_round"
+                  android:supportsRtl="true"
+                  android:theme="@style/Theme.TantsahaMatihaninaVaovao"
+                  android:usesCleartextTraffic="true"
+                  tools:targetApi="31">
+                  <activity
+                      android:name=".MainActivity"
+                      android:exported="true"
+                      android:theme="@style/Theme.TantsahaMatihaninaVaovao">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+              </application>
+
+          </manifest>
+          EOF
+          echo "Manifest vaovao natsangana soa aman-tsara."
 
       - name: Hanangana ny Gradle wrapper mandeha ho azy
         run: |
