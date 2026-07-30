@@ -1,4 +1,4 @@
-name: Hamorona APK avy amin'ny HTML
+name: Hanamboatra APK Tantsaha Natif
 
 on:
   workflow_dispatch:
@@ -8,13 +8,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Hakana ny kaody ao amin'ny GitHub
+      - name: Maka ny kaody
         uses: actions/checkout@v4
-
-      - name: Mametraka Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
 
       - name: Mametraka Java 21
         uses: actions/setup-java@v4
@@ -22,59 +17,21 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      - name: Hametraka ny Capacitor sy handika ny rakitra
-        run: |
-          npm init -y
-          npm install @capacitor/core @capacitor/cli @capacitor/android
-          mkdir -p www
-          
-          # Copie des fichiers locaux vers le dossier www
-          rsync -av --exclude='android' --exclude='node_modules' --exclude='.git' ./ www/
-          
-          # Force la création d'un index.html si absent pour valider la contrainte de Capacitor
-          if [ ! -f "www/index.html" ]; then
-            echo '<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Tantsaha</title></head><body><div id="app"></div></body></html>' > www/index.html
-          fi
-
-          npx cap init "Tantsaha" "com.tantsaha.app" --web-dir=www
-          npx cap add android || true
-          npx cap sync android
-
-      - name: Corriger les conflits de doublons de classes Kotlin
-        run: |
-          # Injecte une règle globale pour exclure les anciens modules JDK7/JDK8 en doublon
-          cat << 'EOF' >> android/build.gradle
-
-          subprojects {
-              project.configurations.all {
-                  resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-                      if (details.requested.group == 'org.jetbrains.kotlin' && (details.requested.name == 'kotlin-stdlib-jdk7' || details.requested.name == 'kotlin-stdlib-jdk8')) {
-                          details.useTarget "org.jetbrains.kotlin:kotlin-stdlib:${details.requested.version}"
-                      }
-                  }
-              }
-          }
-          EOF
-
       - name: Hanangana ny Gradle wrapper mandeha ho azy
         run: |
           npm install -g corepack
-          cd android
           gradle wrapper --gradle-version 8.9
           chmod +x gradlew
 
       - name: Mamorona debug.keystore mandeha ho azy
         run: |
-          cd android
           keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
 
       - name: Manamboatra APK
-        run: |
-          cd android
-          ./gradlew assembleDebug
+        run: ./gradlew assembleDebug
 
       - name: Mampakatra APK ho azo alaina
         uses: actions/upload-artifact@v4
         with:
           name: Tantsaha-Matihanina-APK
-          path: "android/app/build/outputs/apk/debug/*.apk"
+          path: "**/build/outputs/apk/debug/*.apk"
