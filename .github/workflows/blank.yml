@@ -16,11 +16,11 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Mametraka Java 17
+      - name: Mametraka Java 21 (Requis pour Capacitor Android récent)
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '21'
 
       - name: Hametraka ny Capacitor sy handika ny rakitra
         run: |
@@ -44,7 +44,6 @@ jobs:
         run: |
           npm install -g corepack
           cd android
-          # Mise à jour vers la version 8.9 exigée par le plugin Android
           gradle wrapper --gradle-version 8.9
           chmod +x gradlew
 
