@@ -1,4 +1,4 @@
-name: Hanamboatra APK Tantsaha Release
+name: Hanamboatra APK Tantsaha Debug Internet
 
 on:
   workflow_dispatch:
@@ -17,21 +17,28 @@ jobs:
           distribution: temurin
           java-version: '22'
 
+      - name: Forcer la configuration du trafic réseau en clair
+        run: |
+          # Modifie temporairement le manifeste pour autoriser le trafic HTTP/HTTPS sans blocage de sécurité Debug
+          if [ -f "app/src/main/AndroidManifest.xml" ]; then
+            sed -i 's/<application/<application android:usesCleartextTraffic="true"/' app/src/main/AndroidManifest.xml
+          fi
+
       - name: Hanangana ny Gradle wrapper mandeha ho azy
         run: |
           npm install -g corepack
           gradle wrapper --gradle-version 9.3.1
           chmod +x gradlew
 
-      - name: Mamorona debug.keystore (Requis par sécurité pour Gradle)
+      - name: Mamorona debug.keystore mandeha ho azy
         run: |
           keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
 
-      - name: Manamboatra APK Release
-        run: ./gradlew assembleRelease
+      - name: Manamboatra APK
+        run: ./gradlew assembleDebug
 
       - name: Mampakatra APK ho azo alaina
         uses: actions/upload-artifact@v4
         with:
-          name: Tantsaha-Matihanina-Release-APK
-          path: "**/build/outputs/apk/release/*.apk"
+          name: Tantsaha-Matihanina-APK
+          path: "**/build/outputs/apk/debug/*.apk"
