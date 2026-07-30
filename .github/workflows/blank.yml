@@ -1,10 +1,6 @@
 name: Hamorona APK avy amin'ny HTML
 
 on:
-  push:
-    branches: [ "principal" ]
-  pull_request:
-    branches: [ "principal" ]
   workflow_dispatch:
 
 jobs:
@@ -15,17 +11,48 @@ jobs:
       - name: Hakana ny kaody ao amin'ny GitHub
         uses: actions/checkout@v4
 
-      - name: Hamadika ny HTML ho APK
-        uses: darkshredder/web-to-app-action@main
+      - name: Mametraka Node.js
+        uses: actions/setup-node@v4
         with:
-          # Raha ao amin'ny folder "www" na "build" ny HTML-nao dia soloy eto. 
-          # Raha eny amin'ny fotony (root) kosa dia avelao "."
-          build-folder-path: "." 
-          app-name: "NyFampiasako"
-          output-folder-path: "izay-apk"
+          node-version: '20'
 
-      - name: Hampidina ilay rakitra APK voadika
+      - name: Mametraka Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Hametraka ny Capacitor sy handika ny rakitra
+        run: |
+          npm init -y
+          npm install @capacitor/core @capacitor/cli @capacitor/android
+          mkdir -p www
+          # Si vos fichiers HTML sont directement à la racine, on les copie dans www
+          # en évitant d'inclure le dossier android s'il existe déjà
+          rsync -av --exclude='android' --exclude='node_modules' --exclude='.git' ./ www/
+          npx cap init "Tantsaha" "com.tantsaha.app" --web-dir=www
+          npx cap add android || true
+          npx cap sync android
+
+      - name: Hanangana ny Gradle wrapper mandeha ho azy
+        run: |
+          npm install -g corepack
+          cd android
+          gradle wrapper --gradle-version 8.2
+          chmod +x gradlew
+
+      - name: Mamorona debug.keystore mandeha ho azy
+        run: |
+          cd android
+          keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+
+      - name: Manamboatra APK
+        run: |
+          cd android
+          ./gradlew assembleDebug
+
+      - name: Mampakatra APK ho azo alaina
         uses: actions/upload-artifact@v4
         with:
-          name: Ny-App-APK-ko
-          path: izay-apk/
+          name: Tantsaha-Matihanina-APK
+          path: "android/app/build/outputs/apk/debug/*.apk"
