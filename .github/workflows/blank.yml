@@ -1,4 +1,4 @@
-name: Générer APK Flutter
+name: Hamorona APK avy amin'ny HTML
 
 on:
   push:
@@ -12,28 +12,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Récupérer le code du projet
+      - name: Hakana ny kaody ao amin'ny GitHub
         uses: actions/checkout@v4
 
-      - name: Configurer Java JDK
-        uses: actions/setup-java@v4
+      - name: Hamadika ny HTML ho APK
+        uses: darkshredder/web-to-app-action@main
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          # Raha ao amin'ny folder "www" na "build" ny HTML-nao dia soloy eto. 
+          # Raha eny amin'ny fotony (root) kosa dia avelao "."
+          build-folder-path: "." 
+          app-name: "NyFampiasako"
+          output-folder-path: "izay-apk"
 
-      - name: Configurer Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-
-      - name: Récupérer les dépendances
-        run: flutter pub get
-
-      - name: Compiler l'APK
-        run: flutter build apk --release
-
-      - name: Sauvegarder l'APK
+      - name: Hampidina ilay rakitra APK voadika
         uses: actions/upload-artifact@v4
         with:
-          name: Application-Flutter-APK
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: Ny-App-APK-ko
+          path: izay-apk/
