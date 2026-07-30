@@ -23,31 +23,9 @@ jobs:
           gradle wrapper --gradle-version 9.3.1
           chmod +x gradlew
 
-      - name: Hanamboatra sonia ho an'ny APK Release
+      - name: Mamorona debug.keystore (Requis par sécurité pour Gradle)
         run: |
-          # Création d'une clé de signature officielle temporaire pour le mode Release
-          keytool -genkey -v -keystore release.keystore -storepass tantsaha123 -alias tantsahakey -keypass tantsaha123 -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Tantsaha,O=Matihanina,C=MG"
-          
-          # Injection automatique de la configuration de signature dans le projet
-          cat << 'EOF' >> app/build.gradle.kts
-          
-          android {
-              signingConfigs {
-                  create("release") {
-                      storeFile = file("../release.keystore")
-                      storePassword = "tantsaha123"
-                      keyAlias = "tantsahakey"
-                      keyPassword = "tantsaha123"
-                  }
-              }
-              buildTypes {
-                  getByName("release") {
-                      isMinifyEnabled = false
-                      signingConfig = signingConfigs.getByName("release")
-                  }
-              }
-          }
-          EOF
+          keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
 
       - name: Manamboatra APK Release
         run: ./gradlew assembleRelease
