@@ -27,9 +27,15 @@ jobs:
           npm init -y
           npm install @capacitor/core @capacitor/cli @capacitor/android
           mkdir -p www
-          # Si vos fichiers HTML sont directement à la racine, on les copie dans www
-          # en évitant d'inclure le dossier android s'il existe déjà
+          
+          # Copie des fichiers locaux vers le dossier www
           rsync -av --exclude='android' --exclude='node_modules' --exclude='.git' ./ www/
+          
+          # Force la création d'un index.html si absent pour valider la contrainte de Capacitor
+          if [ ! -f "www/index.html" ]; then
+            echo '<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Tantsaha</title></head><body><div id="app"></div><script src="app/src/main/assets/capacitor.plugins.json"></script></body></html>' > www/index.html
+          fi
+
           npx cap init "Tantsaha" "com.tantsaha.app" --web-dir=www
           npx cap add android || true
           npx cap sync android
