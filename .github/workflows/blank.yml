@@ -16,7 +16,7 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Mametraka Java 21 (Requis pour Capacitor Android récent)
+      - name: Mametraka Java 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -39,6 +39,22 @@ jobs:
           npx cap init "Tantsaha" "com.tantsaha.app" --web-dir=www
           npx cap add android || true
           npx cap sync android
+
+      - name: Corriger les conflits de doublons de classes Kotlin
+        run: |
+          # Injecte une règle globale pour exclure les anciens modules JDK7/JDK8 en doublon
+          cat << 'EOF' >> android/build.gradle
+
+          subprojects {
+              project.configurations.all {
+                  resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+                      if (details.requested.group == 'org.jetbrains.kotlin' && (details.requested.name == 'kotlin-stdlib-jdk7' || details.requested.name == 'kotlin-stdlib-jdk8')) {
+                          details.useTarget "org.jetbrains.kotlin:kotlin-stdlib:${details.requested.version}"
+                      }
+                  }
+              }
+          }
+          EOF
 
       - name: Hanangana ny Gradle wrapper mandeha ho azy
         run: |
