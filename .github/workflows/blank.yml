@@ -17,12 +17,40 @@ jobs:
           distribution: temurin
           java-version: '22'
 
-      - name: Forcer la configuration du trafic réseau en clair
+      - name: Configurer le trafic réseau via Python (Sécurisé)
         run: |
-          # Modifie temporairement le manifeste pour autoriser le trafic HTTP/HTTPS sans blocage de sécurité Debug
-          if [ -f "app/src/main/AndroidManifest.xml" ]; then
-            sed -i 's/<application/<application android:usesCleartextTraffic="true"/' app/src/main/AndroidManifest.xml
-          fi
+          python3 -c "
+          import xml.etree.ElementTree as ET
+          import os
+
+          manifest_path = 'app/src/main/AndroidManifest.xml'
+          if os.path.exists(manifest_path):
+              # Enregistrement des namespaces pour éviter la corruption des préfixes android:
+              ET.register_namespace('android', 'http://android.com')
+              ET.register_namespace('tools', 'http://github.com')
+              
+              tree = ET.parse(manifest_path)
+              root = tree.getroot()
+              
+              # Ajout des permissions Internet manquantes si absentes
+              permissions = [
+                  'android.permission.INTERNET',
+                  'android.permission.ACCESS_NETWORK_STATE'
+              ]
+              for perm in permissions:
+                  if not root.findall(f\".//uses-permission[@android:name='{perm}']\", {'android': 'http://android.com'}):
+                      ET.SubElement(root, 'uses-permission', {
+                          '{http://android.com}name': perm
+                      })
+              
+              # Recherche de la balise application et injection du trafic en clair
+              app_element = root.find('application')
+              if app_element is not None:
+                  app_element.set('{http://android.com}usesCleartextTraffic', 'true')
+                  
+              tree.write(manifest_path, encoding='utf-8', xml_declaration=True)
+              print('AndroidManifest mis à jour avec succès.')
+          "
 
       - name: Hanangana ny Gradle wrapper mandeha ho azy
         run: |
