@@ -1,0 +1,21 @@
+name: Fitsapana ny Workflow
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  andrana:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Hakana ny code ao amin'ny repository
+        uses: actions/checkout@v4
+
+      - name: Handefasana baiko tsotra
+        run: |
+          echo "Tena tsara, mandeha tsara ny GitHub Actions-nao!"
+          echo "Daty androany: $(date)"
