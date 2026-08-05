@@ -2,8 +2,10 @@ package com.example
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.webkit.CookieManager
 import android.webkit.WebChromeClient
 import android.webkit.WebSettings
+import android.webkit.WebStorage
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
@@ -21,7 +23,16 @@ class MainActivity : ComponentActivity() {
 
         webView = findViewById(R.id.ai_webview)
 
-        // Fampidirana ny WebSettings
+        // Nettoyage des cookies, sessions et du cache au démarrage
+        val cookieManager = CookieManager.getInstance()
+        cookieManager.removeAllCookies(null)
+        cookieManager.flush()
+
+        webView.clearCache(true)
+        webView.clearHistory()
+        WebStorage.getInstance().deleteAllData()
+
+        // Configuration de WebSettings
         val webSettings: WebSettings = webView.settings
         webSettings.javaScriptEnabled = true
         webSettings.domStorageEnabled = true
@@ -32,6 +43,7 @@ class MainActivity : ComponentActivity() {
         webSettings.loadWithOverviewMode = true
         webSettings.javaScriptCanOpenWindowsAutomatically = true
         webSettings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+        webSettings.cacheMode = WebSettings.LOAD_NO_CACHE
 
         webView.webViewClient = object : WebViewClient() {
             @Deprecated("Deprecated in Java")
@@ -45,7 +57,7 @@ class MainActivity : ComponentActivity() {
         
         webView.webChromeClient = WebChromeClient()
 
-        // Fampidirana ny rohy https://udify.app
+        // Chargement de l'URL publique exacte
         webView.loadUrl("https://udify.app")
 
         // Hitantanana ny OnBackPressed mba hiverin-dalana ao anaty WebView
